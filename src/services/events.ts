@@ -30,7 +30,10 @@ export interface AppEvents {
     questId: Uuid;
     stepId: Uuid;
     quick: boolean;
+    /** No focus session was involved (quick steps included). */
     withoutTimer: boolean;
+    /** The player confirmed the one-time no-timer warning. */
+    confirmedWithoutTimer: boolean;
     sessionId: Uuid | null;
     grant: GrantResult;
   };

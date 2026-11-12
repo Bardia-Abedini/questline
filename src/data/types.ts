@@ -97,8 +97,13 @@ export interface Step extends SyncRow {
   done_at: IsoDateTime | null;
   /** Focused time spent on this step, summed from sessions (ms). */
   actual_ms: number;
-  /** Checked off with no focus session after the one-time warning. */
+  /**
+   * Fact: the step was checked off with no focus session (quick steps included).
+   * Stats use it to tell timed from untimed completions.
+   */
   completed_without_timer: boolean;
+  /** The player confirmed the one-time "did you really finish it?" warning (non-quick steps only). */
+  no_timer_confirmed: boolean;
   /** When the one-time "did you really finish it?" warning was shown. */
   no_timer_warned_at: IsoDateTime | null;
 }
@@ -326,15 +331,20 @@ export interface UserReward extends SyncRow {
   archived_at: IsoDateTime | null;
 }
 
-export type PowerUpType = 'streak_rest_token' | 'double_xp_potion' | 'daily_reroll';
+/**
+ * - `lucky_charm`: doubles the bonus-gold chance on step completion for 24 h from `activated_at`.
+ * - `double_xp_potion`: doubles XP for one focus session (set `focus_sessions.double_xp`).
+ * - `daily_reroll`: swaps one daily quest.
+ */
+export type PowerUpType = 'lucky_charm' | 'double_xp_potion' | 'daily_reroll';
 
 /** A power-up being used: what it applied to. */
 export interface PowerUpActivation extends SyncRow {
   type: PowerUpType;
   inventory_item_id: Uuid;
   activated_at: IsoDateTime;
-  /** e.g. the session a potion doubles, or the day a rest token protects. */
-  target_type: 'focus_session' | 'day' | 'daily_quest' | null;
+  /** e.g. the session a potion doubles or the daily quest rerolled; null for a lucky charm. */
+  target_type: 'focus_session' | 'daily_quest' | null;
   target_id: string | null;
 }
 
@@ -344,11 +354,12 @@ export interface AchievementUnlock extends SyncRow {
   unlocked_at: IsoDateTime;
 }
 
-/** Streak state. The streak itself is derived from active days in the ledger. */
+/**
+ * Streak state. The streak itself is derived from active days in the ledger and never
+ * resets, so `best` equals the current streak; it is stored so it survives pruning of old
+ * ledger rows and is readable without scanning the ledger.
+ */
 export interface StreakState extends SyncRow {
-  /** Missed days covered by streak rest tokens. */
-  protected_days: LocalDate[];
-  /** Best ever, kept even if old ledger rows are pruned. */
   best: number;
 }
 

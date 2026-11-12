@@ -174,6 +174,7 @@ export async function createQuest(input: NewQuestInput): Promise<{ quest: Quest;
         done_at: null,
         actual_ms: 0,
         completed_without_timer: false,
+        no_timer_confirmed: false,
         no_timer_warned_at: null,
       })),
     );

@@ -21,7 +21,7 @@ export function Header() {
   const need = stats?.level.xpForNext ?? 100;
   const gold = stats?.gold ?? 0;
   const streak = stats?.streak;
-  const resting = streak?.status === 'resting' || streak?.status === 'faded';
+  const resting = streak?.status === 'resting';
 
   return (
     <header

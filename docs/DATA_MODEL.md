@@ -64,18 +64,19 @@ Indexes: `status, category_id, *tag_ids, due_date, recurrence_rule_id, template_
 
 Indexes: `quest_id, [quest_id+position], done_at`.
 
-| Field                     | Type                   | Notes                                               |
-| ------------------------- | ---------------------- | --------------------------------------------------- |
-| `quest_id`                | uuid                   |                                                     |
-| `title`                   | string                 |                                                     |
-| `position`                | number                 | Order within the quest (fractional)                 |
-| `guess_minutes`           | number or null         |                                                     |
-| `quick`                   | boolean                | Can be done without a timer                         |
-| `quick_source`            | `rule` / `ai` / `user` | Who set `quick` (rule: guess <= 5 min)              |
-| `done_at`                 | timestamp or null      | Set only through `completeStep`                     |
-| `actual_ms`               | number                 | Focused time on this step (Focus adds session time) |
-| `completed_without_timer` | boolean                | Confirmed the one-time warning                      |
-| `no_timer_warned_at`      | timestamp or null      | When that warning was shown                         |
+| Field                     | Type                   | Notes                                                                                                               |
+| ------------------------- | ---------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| `quest_id`                | uuid                   |                                                                                                                     |
+| `title`                   | string                 |                                                                                                                     |
+| `position`                | number                 | Order within the quest (fractional)                                                                                 |
+| `guess_minutes`           | number or null         |                                                                                                                     |
+| `quick`                   | boolean                | Can be done without a timer                                                                                         |
+| `quick_source`            | `rule` / `ai` / `user` | Who set `quick` (rule: guess <= 5 min)                                                                              |
+| `done_at`                 | timestamp or null      | Set only through `completeStep`                                                                                     |
+| `actual_ms`               | number                 | Focused time on this step (Focus adds session time)                                                                 |
+| `completed_without_timer` | boolean                | Fact: checked off with no focus session (quick steps included); stats use it to split timed and untimed completions |
+| `no_timer_confirmed`      | boolean                | The player confirmed the one-time "did you really finish it?" warning                                               |
+| `no_timer_warned_at`      | timestamp or null      | When that warning was shown                                                                                         |
 
 ### `categories`
 
@@ -161,11 +162,11 @@ Indexes: `&dedupe_key` (unique), `kind, source_id, quest_id, day, occurred_at`.
 | `dedupe_key`  | string                                                                                                                                                               | Idempotency: `step:<id>`, `loot:step:<id>`, `quest:<id>`, `boss:<id>`, `focus:<session id>`, `daily:<id>`, `level:<n>`, `achievement:<id>`, purchase ids |
 | `occurred_at` | timestamp                                                                                                                                                            |                                                                                                                                                          |
 | `day`         | LocalDate                                                                                                                                                            | Streaks, daily stats, weekly XP                                                                                                                          |
-| `meta`        | object or null                                                                                                                                                       | e.g. `{ double_xp: true }`                                                                                                                               |
+| `meta`        | object or null                                                                                                                                                       | e.g. `{ double_xp: true }`, `{ lucky_charm: true }`                                                                                                      |
 
 Rows are never updated or deleted (the repository rejects it). Totals are sums: lifetime
 XP = sum of `xp`; gold balance = sum of `gold`; level = `levelFromXp(xp)`; active days
-(streak) = distinct `day` of `step_reward` rows; weekly XP = `xpInWeek(weekStart)`. Sync
+(streak, never resets) = distinct `day` of `step_reward` rows; weekly XP = `xpInWeek(weekStart)`. Sync
 merge is conflict-free: union of rows, skipping a row whose `dedupe_key` already exists.
 
 ### `inventory`
@@ -181,8 +182,14 @@ Real-life rewards the player defines: `title`, `notes`, `price_gold`, `icon`, `a
 
 ### `power_up_activations`
 
-`type` (`streak_rest_token` / `double_xp_potion` / `daily_reroll`), `inventory_item_id`,
-`activated_at`, `target_type` (`focus_session` / `day` / `daily_quest` / null), `target_id`.
+`type`, `inventory_item_id`, `activated_at`, `target_type` (`focus_session` /
+`daily_quest` / null), `target_id`.
+
+| `type`             | Effect                                                                                                                                                                       |
+| ------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `lucky_charm`      | Doubles the bonus-gold chance on step completion (15% to 30%) for 24 hours from `activated_at`. No target. `grantReward` checks it; loot rows get `meta.lucky_charm = true`. |
+| `double_xp_potion` | Doubles XP for one focus session (target: the session; also set `focus_sessions.double_xp`).                                                                                 |
+| `daily_reroll`     | Swaps one daily quest (target: the daily quest).                                                                                                                             |
 
 ### `achievements`
 
@@ -190,8 +197,10 @@ Real-life rewards the player defines: `title`, `notes`, `price_gold`, `icon`, `a
 
 ### `streak_state` (one row)
 
-`protected_days` (LocalDate[] covered by rest tokens), `best` (best streak ever, kept even
-if old rows are pruned). Current streak is derived (`computeStreak`).
+`best` (number). The streak is derived from the ledger (`computeStreak`): it is the number
+of active days (days with a finished step), it never resets, and a missed day only makes it
+rest. So `best` always equals the current streak; it is stored so the value survives pruning
+of old ledger rows and can be read without scanning the ledger.
 
 ### `daily_quests`
 

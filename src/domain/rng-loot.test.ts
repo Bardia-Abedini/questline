@@ -1,10 +1,15 @@
 import { describe, expect, it } from 'vitest';
 import {
+  anyLuckyCharmActive,
+  isLuckyCharmActive,
+  LUCKY_CHARM_DURATION_MS,
+  luckyCharmEndsAt,
   RARE_DROP_CHANCE,
   rollQuestLoot,
   rollStepLoot,
   STEP_LOOT_CHANCE,
   STEP_LOOT_GOLD,
+  stepLootChance,
 } from './loot';
 import { chance, createRng, pick, randomInt, seedFromString, sequenceRng, shuffle } from './rng';
 import { DIFFICULTIES } from './types';
@@ -88,6 +93,39 @@ describe('rollStepLoot', () => {
     for (let i = 0; i < n; i++) if (rollStepLoot(r, 'E').bonusGold > 0) drops++;
     expect(drops / n).toBeGreaterThan(0.13);
     expect(drops / n).toBeLessThan(0.17);
+  });
+});
+
+describe('lucky charm', () => {
+  const T = 1_700_000_000_000;
+  it('lasts exactly 24 hours from activation', () => {
+    expect(LUCKY_CHARM_DURATION_MS).toBe(24 * 60 * 60 * 1000);
+    expect(isLuckyCharmActive(T, T)).toBe(true);
+    expect(isLuckyCharmActive(T, T + LUCKY_CHARM_DURATION_MS - 1)).toBe(true);
+    expect(isLuckyCharmActive(T, T + LUCKY_CHARM_DURATION_MS)).toBe(false);
+    expect(isLuckyCharmActive(T, T - 1)).toBe(false);
+    expect(luckyCharmEndsAt(T)).toBe(T + LUCKY_CHARM_DURATION_MS);
+  });
+  it('any active charm counts', () => {
+    expect(anyLuckyCharmActive([], T)).toBe(false);
+    expect(anyLuckyCharmActive([T - 2 * LUCKY_CHARM_DURATION_MS, T - 1000], T)).toBe(true);
+    expect(anyLuckyCharmActive([T - 2 * LUCKY_CHARM_DURATION_MS], T)).toBe(false);
+  });
+  it('doubles the step loot chance', () => {
+    expect(stepLootChance()).toBe(0.15);
+    expect(stepLootChance({ luckyCharm: true })).toBe(0.3);
+    // A roll of 0.2 misses without the charm and hits with it.
+    expect(rollStepLoot(sequenceRng([0.2, 0]), 'C').bonusGold).toBe(0);
+    expect(rollStepLoot(sequenceRng([0.2, 0]), 'C', { luckyCharm: true }).bonusGold).toBe(3);
+  });
+  it('drops about 30% of the time with a charm', () => {
+    const r = createRng(42);
+    let drops = 0;
+    const n = 20_000;
+    for (let i = 0; i < n; i++)
+      if (rollStepLoot(r, 'E', { luckyCharm: true }).bonusGold > 0) drops++;
+    expect(drops / n).toBeGreaterThan(0.28);
+    expect(drops / n).toBeLessThan(0.32);
   });
 });
 

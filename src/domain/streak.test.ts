@@ -11,13 +11,12 @@ describe('computeStreak', () => {
       status: 'new',
       lastActiveDay: null,
       restingDays: 0,
-      restDaysLeft: 2,
     });
   });
 
   it('counts consecutive days and is active today', () => {
     const r = computeStreak({ activeDays: ['2026-03-08', '2026-03-09', '2026-03-10'], today: T });
-    expect(r).toMatchObject({ current: 3, best: 3, status: 'active', lastActiveDay: T });
+    expect(r).toEqual({ current: 3, best: 3, status: 'active', lastActiveDay: T, restingDays: 0 });
   });
 
   it('ignores duplicates, order and future days', () => {
@@ -30,7 +29,7 @@ describe('computeStreak', () => {
 
   it('rests (does not break) when today has no activity yet', () => {
     const r = computeStreak({ activeDays: ['2026-03-08', '2026-03-09'], today: T });
-    expect(r).toMatchObject({ current: 2, status: 'resting', restingDays: 0, restDaysLeft: 2 });
+    expect(r).toMatchObject({ current: 2, status: 'resting', restingDays: 0 });
   });
 
   it('a missed day rests the streak and it resumes on return', () => {
@@ -38,61 +37,28 @@ describe('computeStreak', () => {
     expect(r).toMatchObject({ current: 3, best: 3, status: 'active' });
   });
 
-  it('forgives up to two missed days in a row by default', () => {
-    expect(
-      computeStreak({ activeDays: ['2026-03-06', '2026-03-07', '2026-03-10'], today: T }).current,
-    ).toBe(3);
-    expect(
-      computeStreak({ activeDays: ['2026-03-05', '2026-03-06', '2026-03-10'], today: T }).current,
-    ).toBe(1);
+  it('never resets, whatever the gap', () => {
+    const r = computeStreak({
+      activeDays: ['2025-01-01', '2025-01-02', '2025-06-30', '2026-03-10'],
+      today: T,
+    });
+    expect(r).toMatchObject({ current: 4, best: 4, status: 'active' });
   });
 
-  it('never shows zero once started, even after a long gap', () => {
+  it('never drops while resting, even after a long time away', () => {
     const r = computeStreak({ activeDays: ['2026-01-01', '2026-01-02'], today: T });
-    expect(r).toMatchObject({ current: 2, status: 'faded', restDaysLeft: 0 });
-    expect(r.current).toBeGreaterThan(0);
+    expect(r).toMatchObject({ current: 2, best: 2, status: 'resting', restingDays: 66 });
   });
 
-  it('starts a new run at 1 after a faded gap and keeps the best', () => {
-    const r = computeStreak({
-      activeDays: ['2026-01-01', '2026-01-02', '2026-01-03', '2026-01-04', '2026-03-10'],
-      today: T,
-    });
-    expect(r).toMatchObject({ current: 1, best: 4, status: 'active' });
+  it('reports resting days', () => {
+    expect(computeStreak({ activeDays: ['2026-03-08'], today: T }).restingDays).toBe(1);
   });
 
-  it('reports resting days and rest days left', () => {
-    const r = computeStreak({ activeDays: ['2026-03-08'], today: T });
-    expect(r).toMatchObject({ status: 'resting', restingDays: 1, restDaysLeft: 1 });
-  });
-
-  it('rest tokens cover missed days on top of the free rests', () => {
-    const active = ['2026-03-01', '2026-03-02', '2026-03-10'];
-    expect(computeStreak({ activeDays: active, today: T }).current).toBe(1);
-    const covered = computeStreak({
-      activeDays: active,
-      today: T,
-      protectedDays: ['2026-03-03', '2026-03-04', '2026-03-05', '2026-03-06', '2026-03-07'],
-    });
-    expect(covered.current).toBe(3);
-  });
-
-  it('protected days outside a gap change nothing', () => {
-    const r = computeStreak({
-      activeDays: ['2026-03-09', '2026-03-10'],
-      today: T,
-      protectedDays: ['2026-02-01'],
-    });
-    expect(r.current).toBe(2);
-  });
-
-  it('supports a custom allowance, including zero', () => {
-    const days = ['2026-03-08', '2026-03-10'];
-    expect(computeStreak({ activeDays: days, today: T, freeRestDays: 0 }).current).toBe(1);
-    expect(computeStreak({ activeDays: days, today: T, freeRestDays: 5 }).current).toBe(2);
-    expect(computeStreak({ activeDays: ['2026-03-08'], today: T, freeRestDays: 0 }).status).toBe(
-      'faded',
-    );
+  it('best always equals current', () => {
+    for (const days of [[], ['2026-03-01'], ['2026-02-01', '2026-03-09', '2026-03-10']]) {
+      const r = computeStreak({ activeDays: days, today: T });
+      expect(r.best).toBe(r.current);
+    }
   });
 
   it('works across month and year boundaries', () => {
@@ -106,12 +72,13 @@ describe('computeStreak', () => {
 
 describe('streakAfterActivity', () => {
   it('shows what the streak becomes after acting today', () => {
-    expect(streakAfterActivity({ activeDays: ['2026-03-09'], today: T }).current).toBe(2);
+    expect(streakAfterActivity({ activeDays: ['2026-03-01'], today: T }).current).toBe(2);
     expect(streakAfterActivity({ activeDays: [], today: T })).toMatchObject({
       current: 1,
       best: 1,
       status: 'active',
     });
+    expect(streakAfterActivity({ activeDays: [T], today: T }).current).toBe(1);
   });
 });
 

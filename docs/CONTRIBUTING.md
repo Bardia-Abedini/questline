@@ -166,7 +166,9 @@ render their own `<main id="main">`. `/dev/ui` is reserved for the gallery.
 
 Never write to `ledger_events` yourself. Use `@/services`:
 
-- `completeStep(stepId, { sessionId?, confirmedWithoutTimer? })`: marks the step done,
+- `completeStep(stepId, { sessionId?, confirmedWithoutTimer? })`: marks the step done
+  (`completed_without_timer` = no `sessionId`; `no_timer_confirmed` = the player confirmed
+  the one-time warning),
   touches the quest, pays the step's share of the 60% pool (loot roll included), and, if it
   was the last open step, finishes the quest (40% finish bonus, +25% for bosses, rare loot
   roll). Used by both Quests (checkbox) and Focus (Done button). Pass `sessionId` when done
@@ -182,6 +184,9 @@ sourceId, dedupeKey: 'achievement:<id>', reward })`: achievements and other fixe
   purchases; throws `InsufficientGoldError` instead of going negative.
 - `configureRewards({ rareItemIds: () => [...] })`: Game registers its rare cosmetics in
   its `setup()`; dropped items are added to `inventory` automatically.
+
+A lucky charm activated in the last 24 h (`power_up_activations`, type `lucky_charm`)
+doubles the bonus-gold chance on steps automatically; Game only creates the activation row.
 
 Every grant is idempotent (ledger `dedupe_key`), pays level-up gold gifts for each level
 crossed (`level:<n>`), keeps `streak_state.best` current, and returns a `GrantResult`

@@ -69,7 +69,7 @@ export function defaultProfile(timezone: string): NewRow<Profile> {
 }
 
 export function defaultStreakState(): NewRow<StreakState> {
-  return { protected_days: [], best: 0 };
+  return { best: 0 };
 }
 
 /** Built-in categories (plan: School, Home, Personal). Names come from i18n until renamed. */

@@ -21,13 +21,18 @@ const PROGRESS_TABLES = () => [
   db.daily_quests,
   db.inventory,
   db.streak_state,
+  db.power_up_activations,
   db.outbox,
 ];
 
 export interface CompleteStepOptions {
   /** The focus session the step was finished in, if any (enables double-XP potions). */
   sessionId?: Uuid | null;
-  /** The player confirmed the one-time "did you really finish it?" warning. */
+  /**
+   * The player confirmed the one-time "did you really finish it?" warning (non-quick step,
+   * no session). Stored as `no_timer_confirmed`. Whether the step was done without a timer
+   * is recorded from `sessionId` alone (`completed_without_timer`).
+   */
   confirmedWithoutTimer?: boolean;
   /** Finish the quest automatically when this was its last open step. Default true. */
   autoCompleteQuest?: boolean;
@@ -67,7 +72,8 @@ export function completeStep(
     const done: Step = {
       ...step,
       done_at: at,
-      completed_without_timer: !options.sessionId && !!options.confirmedWithoutTimer,
+      completed_without_timer: !options.sessionId,
+      no_timer_confirmed: !options.sessionId && !!options.confirmedWithoutTimer,
       updated_at: at,
     };
     await saveStep(done);
@@ -87,6 +93,7 @@ export function completeStep(
       stepId,
       quick: step.quick,
       withoutTimer: done.completed_without_timer,
+      confirmedWithoutTimer: done.no_timer_confirmed,
       sessionId: options.sessionId ?? null,
       grant,
     });

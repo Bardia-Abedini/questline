@@ -19,11 +19,7 @@ export async function getPlayerStats(today: LocalDate): Promise<PlayerStats> {
     activeDays(),
     getSingleton('streak_state'),
   ]);
-  const streak = computeStreak({
-    activeDays: days,
-    today,
-    protectedDays: streakState?.protected_days ?? [],
-  });
+  const streak = computeStreak({ activeDays: days, today });
   return {
     xp: totals.xp,
     gold: totals.gold,

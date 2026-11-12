@@ -20,7 +20,7 @@ import {
 import { recordChange, stampNewRow } from '@/data/repositories/base';
 import type { InventoryItem, LedgerEvent, LedgerKind, LedgerSourceType, Uuid } from '@/data/types';
 import { levelFromXp, levelsGained, levelUpGold, isMilestoneLevel } from '@/domain/levels';
-import { rollQuestLoot, rollStepLoot } from '@/domain/loot';
+import { anyLuckyCharmActive, rollQuestLoot, rollStepLoot } from '@/domain/loot';
 import { finishBonus, bossExtra, focusBonusXp, multiplyXp, stepPayout } from '@/domain/rewards';
 import { createRng, type Rng } from '@/domain/rng';
 import { computeStreak } from '@/domain/streak';
@@ -36,6 +36,7 @@ export const REWARD_TABLES = [
   'daily_quests',
   'inventory',
   'streak_state',
+  'power_up_activations',
 ] as const;
 
 export type RewardRequest =
@@ -104,6 +105,7 @@ const TABLE_HANDLES = () => [
   db.daily_quests,
   db.inventory,
   db.streak_state,
+  db.power_up_activations,
   db.outbox,
 ];
 
@@ -174,7 +176,8 @@ export function grantReward(
           alreadyGranted = true;
           break;
         }
-        const drop = rollStepLoot(rng, quest.difficulty);
+        const luckyCharm = await luckyCharmActive();
+        const drop = rollStepLoot(rng, quest.difficulty, { luckyCharm });
         if (drop.bonusGold > 0) {
           await append({
             kind: 'loot_gold',
@@ -184,6 +187,7 @@ export function grantReward(
             source_id: step.id,
             quest_id: quest.id,
             dedupe_key: `loot:step:${step.id}`,
+            meta: luckyCharm ? { lucky_charm: true } : null,
           });
           loot.bonusGold = drop.bonusGold;
         }
@@ -357,6 +361,15 @@ export function grantReward(
   });
 }
 
+/** Whether a lucky charm power-up is working right now (activated less than 24 h ago). */
+async function luckyCharmActive(): Promise<boolean> {
+  const charms = await db.power_up_activations.where('type').equals('lucky_charm').toArray();
+  return anyLuckyCharmActive(
+    charms.filter((c) => c.deleted_at === null).map((c) => Date.parse(c.activated_at)),
+    clock.now(),
+  );
+}
+
 /** Keeps `streak_state.best` up to date so the best streak survives anything. */
 async function updateBestStreak(): Promise<void> {
   const state = await getSingleton('streak_state');
@@ -364,11 +377,7 @@ async function updateBestStreak(): Promise<void> {
   const days = (await db.ledger_events.where('kind').equals('step_reward').toArray())
     .filter((e) => e.deleted_at === null)
     .map((e) => e.day);
-  const streak = computeStreak({
-    activeDays: days,
-    today: clock.today(),
-    protectedDays: state.protected_days,
-  });
+  const streak = computeStreak({ activeDays: days, today: clock.today() });
   if (streak.best > state.best) {
     await db.streak_state.put({ ...state, best: streak.best, updated_at: clock.iso() });
     await recordChange('streak_state', state.id, 'upsert');

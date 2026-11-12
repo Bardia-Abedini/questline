@@ -145,15 +145,64 @@ describe('completeStep / completeQuest', () => {
     expect(await ledgerTotals()).toEqual(BASE_REWARDS.E);
   });
 
-  it('marks the confirmed no-timer case and touches the quest', async () => {
+  it('records the confirmed no-timer case and touches the quest', async () => {
     const { quest, steps } = await createQuest({
       title: 'A',
       steps: [{ title: '1' }, { title: '2' }],
     });
+    const seen = record('step.completed');
     setClock(T0 + 60_000);
     const r = await completeStep(steps[0]!.id, { confirmedWithoutTimer: true, rng: noLoot() });
     expect(r.step.completed_without_timer).toBe(true);
+    expect(r.step.no_timer_confirmed).toBe(true);
+    expect(seen[0]).toMatchObject({ withoutTimer: true, confirmedWithoutTimer: true });
     expect((await db.quests.get(quest.id))!.last_touched_at).toBe('2026-03-10T09:01:00.000Z');
+  });
+
+  it('records a quick step checked off with no session as untimed, without confirmation', async () => {
+    const { steps } = await createQuest({
+      title: 'A',
+      steps: [{ title: 'quick', guess_minutes: 3 }, { title: 'other' }],
+    });
+    const seen = record('step.completed');
+    const r = await completeStep(steps[0]!.id, { rng: noLoot() });
+    expect(r.step).toMatchObject({
+      quick: true,
+      completed_without_timer: true,
+      no_timer_confirmed: false,
+    });
+    expect(seen[0]).toMatchObject({
+      quick: true,
+      withoutTimer: true,
+      confirmedWithoutTimer: false,
+    });
+  });
+
+  it('records a step finished in a session as timed, ignoring a stray confirmation', async () => {
+    const { steps } = await createQuest({ title: 'A', steps: [{ title: '1' }, { title: '2' }] });
+    const session = await focusSessionsRepo.create({
+      kind: 'focus',
+      quest_id: null,
+      step_id: steps[0]!.id,
+      started_at: '2026-03-10T08:30:00.000Z',
+      planned_ms: 25 * 60_000,
+      pauses: [],
+      away: [],
+      distractions: [],
+      ended_at: null,
+      end_reason: null,
+      focused_ms: 0,
+      away_ms: 0,
+      paused_ms: 0,
+      double_xp: false,
+      device_id: 'dev',
+    });
+    const r = await completeStep(steps[0]!.id, {
+      sessionId: session.id,
+      confirmedWithoutTimer: true,
+      rng: noLoot(),
+    });
+    expect(r.step).toMatchObject({ completed_without_timer: false, no_timer_confirmed: false });
   });
 
   it('can leave the quest open after the last step', async () => {
@@ -213,11 +262,52 @@ async function createQuestStep(questId: string, title: string, position: number)
     done_at: null,
     actual_ms: 0,
     completed_without_timer: false,
+    no_timer_confirmed: false,
     no_timer_warned_at: null,
   });
 }
 
 describe('loot', () => {
+  async function activateCharm(at: string) {
+    const { powerUpActivationsRepo } = await import('@/data/repositories');
+    return powerUpActivationsRepo.create({
+      type: 'lucky_charm',
+      inventory_item_id: 'item',
+      activated_at: at,
+      target_type: null,
+      target_id: null,
+    });
+  }
+
+  it('an active lucky charm doubles the bonus-gold chance', async () => {
+    const { steps } = await createQuest({
+      title: 'A',
+      difficulty: 'C',
+      steps: [{ title: '1' }, { title: '2' }, { title: '3' }],
+    });
+    // 0.2 misses the normal 15% chance.
+    expect(
+      (await completeStep(steps[0]!.id, { rng: sequenceRng([0.2, 0]) })).grant!.loot.bonusGold,
+    ).toBe(0);
+    await activateCharm('2026-03-10T08:00:00.000Z');
+    const r = await completeStep(steps[1]!.id, { rng: sequenceRng([0.2, 0]) });
+    expect(r.grant!.loot.bonusGold).toBe(3);
+    const loot = r.grant!.events.find((e) => e.kind === 'loot_gold')!;
+    expect(loot.meta).toEqual({ lucky_charm: true });
+  });
+
+  it('a lucky charm stops working 24 hours after activation', async () => {
+    const { steps } = await createQuest({
+      title: 'A',
+      difficulty: 'C',
+      steps: [{ title: '1' }, { title: '2' }],
+    });
+    await activateCharm('2026-03-09T09:00:00.000Z'); // exactly 24 h before T0
+    expect(
+      (await completeStep(steps[0]!.id, { rng: sequenceRng([0.2, 0]) })).grant!.loot.bonusGold,
+    ).toBe(0);
+  });
+
   it('drops bonus gold on a step with a lucky roll', async () => {
     const { steps } = await createQuest({
       title: 'A',
