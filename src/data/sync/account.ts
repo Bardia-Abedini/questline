@@ -3,8 +3,9 @@
  *
  * Signing in on a device:
  * - the device already belongs to this account: nothing to do;
- * - the account is empty: the device's data (guest data and defaults) is uploaded;
- * - the device has no real guest data: the account's data replaces the local defaults;
+ * - the device has no real guest data: the account's data replaces the local defaults (a
+ *   brand-new account gets fresh defaults);
+ * - the account has no real data: the device's data is uploaded (defaults folded);
  * - both have data: the player chooses Merge / Keep account data / Keep this device's data
  *   (`resolveAccountChoice`). Nothing is changed until they choose.
  *
@@ -90,26 +91,27 @@ export async function connectAccount(
     await db.local_meta.delete(OWNER_KEY);
   }
   const deviceHasData = !owner && (await hasGuestData());
-  if (!(await remote.hasData())) {
-    await engine.checkEpoch();
-    await claimLocalRows(userId);
-    await setMeta(OWNER_KEY, userId);
+  if (!deviceHasData) {
+    await adoptAccountData(userId, engine, bootstrap);
     return 'ready';
   }
-  if (!deviceHasData) {
-    await useAccountData(userId, engine, bootstrap);
+  if (!(await remote.hasData())) {
+    // Nothing real in the account yet: upload, folding its defaults (if any) with ours.
+    await resolveAccountChoice('merge', userId, remote, engine, bootstrap);
     return 'ready';
   }
   return 'needs_choice';
 }
 
-async function useAccountData(userId: Uuid, engine: SyncEngine, bootstrap: BootstrapOptions) {
+async function adoptAccountData(userId: Uuid, engine: SyncEngine, bootstrap: BootstrapOptions) {
   await wipeSyncedData();
   await clearSyncMeta();
   await engine.checkEpoch();
   await engine.pullTables(SYNC_TABLES);
-  // The account already has its categories; only create missing one-row tables.
-  await setMeta(SEEDED_KEY, true);
+  // The account already has its categories (unless it is brand new); only create what is
+  // missing.
+  if ((await db.categories.count()) > 0) await setMeta(SEEDED_KEY, true);
+  else await db.local_meta.delete(SEEDED_KEY);
   await ensureLocalData(bootstrap);
   await claimLocalRows(userId);
   await setMeta(OWNER_KEY, userId);
@@ -124,7 +126,7 @@ export async function resolveAccountChoice(
 ): Promise<void> {
   setCurrentUserId(userId);
   if (choice === 'keep_account') {
-    await useAccountData(userId, engine, bootstrap);
+    await adoptAccountData(userId, engine, bootstrap);
     return;
   }
   if (choice === 'keep_device') {
@@ -147,10 +149,7 @@ export async function resolveAccountChoice(
 /** Removes a never-uploaded local row and its pending change. */
 async function dropLocal(table: string, id: Uuid) {
   await db.table(table).delete(id);
-  const entry = await db.outbox
-    .where('[table+row_id]')
-    .equals([table, id])
-    .first();
+  const entry = await db.outbox.where('[table+row_id]').equals([table, id]).first();
   if (entry?.seq !== undefined) await db.outbox.delete(entry.seq);
 }
 

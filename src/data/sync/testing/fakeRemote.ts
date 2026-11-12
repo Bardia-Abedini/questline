@@ -76,12 +76,16 @@ export class FakeServer {
 
   /** A remote bound to one signed-in user (like a Supabase session). */
   remote(userId: string): SyncRemote & { live: boolean } {
+    // eslint-disable-next-line @typescript-eslint/no-this-alias -- closures below need the server
     const server = this;
     return {
       live: true,
       async state() {
         server.gate();
-        return { epoch: server.epochs.get(userId) ?? 0, serverNow: pgTs(new Date(server.now).toISOString()) };
+        return {
+          epoch: server.epochs.get(userId) ?? 0,
+          serverNow: pgTs(new Date(server.now).toISOString()),
+        };
       },
       async push(table, rows, clientNow) {
         server.gate();
@@ -93,7 +97,9 @@ export class FakeServer {
         const store = server.tables.get(table)!;
         const serverNow = server.now;
         const skewMs =
-          Math.abs(serverNow - Date.parse(clientNow)) > 2000 ? serverNow - Date.parse(clientNow) : 0;
+          Math.abs(serverNow - Date.parse(clientNow)) > 2000
+            ? serverNow - Date.parse(clientNow)
+            : 0;
         const naturalKey = NATURAL_KEYS[table];
         const touched = new Set<string>();
         const keys = new Set<unknown>();
@@ -142,7 +148,10 @@ export class FakeServer {
             (touched.has(r.id) || (naturalKey !== undefined && keys.has(r[naturalKey]))),
         );
         server.notify(userId, table);
-        return { rows: out.map((r) => server.render(r)), serverNow: pgTs(new Date(serverNow).toISOString()) };
+        return {
+          rows: out.map((r) => server.render(r)),
+          serverNow: pgTs(new Date(serverNow).toISOString()),
+        };
       },
       async pull(table, after: Cursor | null, limit) {
         server.gate();

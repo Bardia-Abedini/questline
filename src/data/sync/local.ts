@@ -30,12 +30,8 @@ export async function clearSyncMeta(): Promise<void> {
  * local settings stay. Callers decide whether to re-seed defaults (`ensureLocalData`).
  */
 export async function wipeSyncedData(): Promise<void> {
-  await db.transaction(
-    'rw',
-    [...SYNC_TABLES.map((t) => db.table(t)), db.outbox],
-    async () => {
-      for (const t of SYNC_TABLES) await db.table(t).clear();
-      await db.outbox.clear();
-    },
-  );
+  await db.transaction('rw', [...SYNC_TABLES.map((t) => db.table(t)), db.outbox], async () => {
+    for (const t of SYNC_TABLES) await db.table(t).clear();
+    await db.outbox.clear();
+  });
 }

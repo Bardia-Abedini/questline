@@ -300,13 +300,17 @@ export class SyncEngine {
       await db.transaction('rw', db.outbox, async () => {
         for (const { entry } of present) {
           const current = await db.outbox.get(entry.seq!);
-          if (current && current.changed_at === entry.changed_at) await db.outbox.delete(entry.seq!);
+          if (current && current.changed_at === entry.changed_at)
+            await db.outbox.delete(entry.seq!);
         }
       });
       await applyRemoteRows(table, result.rows);
     } catch (error) {
       if (!(error instanceof RemoteError) || error.kind !== 'rejected') {
-        await markAttempt(present.map((p) => p.entry), errorText(error));
+        await markAttempt(
+          present.map((p) => p.entry),
+          errorText(error),
+        );
         throw error;
       }
       if (present.length > 1) {

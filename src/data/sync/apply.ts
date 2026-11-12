@@ -63,7 +63,10 @@ export async function applyRemoteRows<N extends SyncTableName>(
           .toArray();
         for (const twin of twins) {
           await t.delete(twin.id);
-          const twinEntry = await db.outbox.where('[table+row_id]').equals([table, twin.id]).first();
+          const twinEntry = await db.outbox
+            .where('[table+row_id]')
+            .equals([table, twin.id])
+            .first();
           if (twinEntry?.seq !== undefined) await db.outbox.delete(twinEntry.seq);
         }
       }
