@@ -298,6 +298,7 @@ test('templates: save, create from, delete', async ({ page }) => {
     ],
   });
   await page.getByRole('button', { name: 'Save as template' }).click();
+  await expect(page.getByText('Template saved from “Weekly review”')).toBeVisible();
   await open(page, '/quests/templates');
   await page.getByRole('link', { name: 'New quest from “Weekly review”' }).click();
   await expect(page.getByLabel('Quest name')).toHaveValue('Weekly review');
@@ -336,8 +337,8 @@ test('quick capture with the + button and the Q key lands in the Inbox', async (
 
   await openTab(page, 'Inbox');
   await expect(page.getByRole('tab', { name: /^Inbox/ })).toContainText('2');
-  await expect(page.getByRole('link', { name: 'Buy stamps' })).toBeVisible();
-  await expect(page.getByRole('link', { name: 'Email the teacher' })).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Buy stamps', exact: true })).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Email the teacher', exact: true })).toBeVisible();
 });
 
 test('inbox items are sorted into real quests quickly', async ({ page }) => {
