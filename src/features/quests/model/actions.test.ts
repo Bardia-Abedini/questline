@@ -153,6 +153,19 @@ describe('updateQuestFromDraft', () => {
     expect((await listSteps(quest.id)).map((s) => s.title)).toEqual(['Write essay']);
   });
 
+  it('treats the automatic step as no steps: adding steps replaces it, renaming keeps it', async () => {
+    const { quest } = await createQuestFromDraft(draft());
+    const [auto] = await listSteps(quest.id);
+    const d = (await draftFromQuest(quest.id))!;
+    expect(d.steps).toEqual([]);
+    await updateQuestFromDraft(quest.id, { ...d, title: 'Write the essay' });
+    const renamed = await listSteps(quest.id);
+    expect(renamed.map((s) => [s.id, s.title])).toEqual([[auto!.id, 'Write the essay']]);
+    const d2 = (await draftFromQuest(quest.id))!;
+    await updateQuestFromDraft(quest.id, { ...d2, steps: [makeStep('Outline', 10)] });
+    expect((await listSteps(quest.id)).map((s) => s.title)).toEqual(['Outline']);
+  });
+
   it('sorting an inbox item moves it to the backlog and emits inbox.sorted', async () => {
     const sorted = record('inbox.sorted');
     const q = await quickCapture('  call the dentist ');

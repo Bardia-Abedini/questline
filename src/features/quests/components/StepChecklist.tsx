@@ -66,7 +66,7 @@ export function StepChecklist({ quest, steps }: StepChecklistProps) {
               <input
                 id={id}
                 type="checkbox"
-                checked={done}
+                checked={busy === step.id ? !done : done}
                 disabled={busy === step.id}
                 onChange={async () => {
                   setBusy(step.id);

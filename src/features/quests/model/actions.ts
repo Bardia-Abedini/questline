@@ -215,6 +215,19 @@ async function syncSteps(
   questGuess: number | null,
 ): Promise<void> {
   const existing = await listSteps(questId);
+  const filledNow = filledSteps(drafts);
+  const lone = existing.length === 1 ? existing[0]! : null;
+  if (filledNow.length === 0 && lone && lone.done_at === null) {
+    // Keep the one automatic step (same id, so an open focus session still points at it).
+    await stepsRepo.update(lone.id, {
+      title: questTitle,
+      guess_minutes: questGuess,
+      quick: isQuickByRule(questGuess),
+      quick_source: 'rule',
+      position: 1,
+    });
+    return;
+  }
   const byId = new Map(existing.map((s) => [s.id, s]));
   const kept = new Set<Uuid>();
   const filled = filledSteps(drafts);
@@ -312,6 +325,17 @@ async function syncRecurrence(quest: Quest, draft: QuestDraft, patch: Partial<Qu
   if (!patch.due_date) patch.due_date = occurrence ?? anchor;
 }
 
+function isAutoStep(quest: Quest, steps: Step[]): boolean {
+  const only = steps.length === 1 ? steps[0]! : null;
+  return (
+    !!only &&
+    only.title === quest.title &&
+    only.done_at === null &&
+    only.actual_ms === 0 &&
+    only.quick_source === 'rule'
+  );
+}
+
 /** The form draft for an existing quest. */
 export async function draftFromQuest(questId: Uuid): Promise<QuestDraft | null> {
   const quest = await questsRepo.get(questId);
@@ -330,7 +354,9 @@ export async function draftFromQuest(questId: Uuid): Promise<QuestDraft | null> 
     dueTime: quest.due_time ?? '',
     categoryId: quest.category_id,
     tagIds: quest.tag_ids.slice(),
-    steps: steps.map((s) => ({
+    // The automatic step named after the quest is not shown as a real step: adding steps
+    // replaces it, and leaving the list empty keeps it (renamed with the quest).
+    steps: (isAutoStep(quest, steps) ? [] : steps).map((s) => ({
       ...makeStep(s.title, s.guess_minutes, s.quick, s.quick_source),
       id: s.id,
       done: s.done_at !== null,
@@ -602,7 +628,9 @@ export async function saveAsTemplate(questId: Uuid): Promise<QuestTemplate> {
       guess_minutes: quest.guess_minutes,
       category_id: quest.category_id,
       tag_ids: quest.tag_ids.slice(),
-      steps: steps.map((s) => ({ title: s.title, guess_minutes: s.guess_minutes, quick: s.quick })),
+      // The automatic step named after the quest is not shown as a real step: adding steps
+    // replaces it, and leaving the list empty keeps it (renamed with the quest).
+    steps: (isAutoStep(quest, steps) ? [] : steps).map((s) => ({ title: s.title, guess_minutes: s.guess_minutes, quick: s.quick })),
     });
   });
 }
