@@ -99,11 +99,7 @@ export async function setDisplayName(name: string): Promise<void> {
 }
 
 /** Whether a cosmetic is currently worn or placed. */
-export function isEquipped(
-  itemId: string,
-  look: AvatarLook,
-  room: RoomLook,
-): boolean {
+export function isEquipped(itemId: string, look: AvatarLook, room: RoomLook): boolean {
   const item = cosmeticById(itemId);
   if (!item) return false;
   if (item.area === 'avatar') return look[item.slot as keyof AvatarLook] === itemId;
