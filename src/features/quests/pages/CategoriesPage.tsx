@@ -24,7 +24,7 @@ import {
   renameTag,
   updateCategory,
 } from '../model/actions';
-import { useCategoryName } from '../components/QuestMeta';
+import { useCategoryName } from '../components/labels';
 
 const CATEGORY_ICONS: IconName[] = [
   'book',
@@ -67,7 +67,11 @@ export function CategoriesPage() {
   const save = async () => {
     if (!edit || !edit.name.trim()) return;
     if (edit.category)
-      await updateCategory(edit.category.id, { name: edit.name, color: edit.color, icon: edit.icon });
+      await updateCategory(edit.category.id, {
+        name: edit.name,
+        color: edit.color,
+        icon: edit.icon,
+      });
     else await createCategory({ name: edit.name, color: edit.color, icon: edit.icon });
     setEdit(null);
   };
@@ -83,7 +87,11 @@ export function CategoriesPage() {
                 className="grid size-10 shrink-0 place-items-center rounded-full text-on-primary"
                 style={{ background: `var(--ql-cat-${c.color})` }}
               >
-                <Icon name={(CATEGORY_ICONS as string[]).includes(c.icon) ? (c.icon as IconName) : 'star'} />
+                <Icon
+                  name={
+                    (CATEGORY_ICONS as string[]).includes(c.icon) ? (c.icon as IconName) : 'star'
+                  }
+                />
               </span>
               <span className="min-w-0 flex-1 truncate font-bold">{categoryName(c)}</span>
               <IconButton

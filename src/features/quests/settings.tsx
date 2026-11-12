@@ -5,9 +5,8 @@ import { updateSettings, useSettings } from '@/data';
 import { useFormat } from '@/i18n/useFormat';
 import { Card, Section, SegmentedControl } from '@/ui';
 
-const LIMITS = Array.from(
-  { length: MAX_ACTIVE_LIMIT - MIN_ACTIVE_LIMIT + 1 },
-  (_, i) => String(MIN_ACTIVE_LIMIT + i),
+const LIMITS = Array.from({ length: MAX_ACTIVE_LIMIT - MIN_ACTIVE_LIMIT + 1 }, (_, i) =>
+  String(MIN_ACTIVE_LIMIT + i),
 );
 
 /** Quests settings: the active limit (1 to 5) and links to categories and templates. OWNER: Quests. */

@@ -6,15 +6,7 @@ import { useFormat } from '@/i18n/useFormat';
 import { Card, ProgressBar } from '@/ui';
 import type { QuestWithSteps } from '../hooks';
 import { QuestMeta } from './QuestMeta';
-
-export function questPath(id: Uuid): string {
-  return `/quests/${id}`;
-}
-
-export function stepProgress(steps: QuestWithSteps['steps']) {
-  const done = steps.filter((s) => s.done_at !== null).length;
-  return { done, total: steps.length, next: steps.find((s) => s.done_at === null) ?? null };
-}
+import { stepProgress, questPath } from './questUtils';
 
 /** A quest in a list: title (opens the quest), calm meta chips, progress, and actions. */
 export function QuestCard({

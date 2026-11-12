@@ -114,14 +114,17 @@ export function QuestFormPage() {
   }, [questId]);
 
   // New quest from a template link.
-  useEffect(() => {
-    if (editing || !templateId || !templates || usedTemplate === templateId) return;
+  // (Adjusting state while rendering, once the templates have loaded.)
+  const [templateParamDone, setTemplateParamDone] = useState(false);
+  if (!editing && templateId && templates && !templateParamDone) {
+    setTemplateParamDone(true);
     const tpl = templates.find((x) => x.id === templateId);
-    if (!tpl) return;
-    setDraft((d) => draftFromTemplate(tpl, d ?? emptyDraft()));
-    setUsedTemplate(tpl.id);
-    setShowDetails(true);
-  }, [editing, templateId, templates, usedTemplate]);
+    if (tpl) {
+      setDraft((d) => draftFromTemplate(tpl, d ?? emptyDraft()));
+      setUsedTemplate(tpl.id);
+      setShowDetails(true);
+    }
+  }
 
   // Auto priority, difficulty and guess from AI, applied only to fields the player has not set.
   const title = draft?.title.trim() ?? '';
@@ -251,7 +254,10 @@ export function QuestFormPage() {
       }
       const where = result.activated ? t('toast.saved_active') : t('toast.saved_backlog');
       showToast({
-        title: editing && !sorting ? t('toast.saved') : t('toast.saved_named', { title: result.quest.title }),
+        title:
+          editing && !sorting
+            ? t('toast.saved')
+            : t('toast.saved_named', { title: result.quest.title }),
         description: editing && !sorting ? undefined : where,
         tone: 'success',
         icon: 'check',
@@ -307,20 +313,13 @@ export function QuestFormPage() {
           className="text-lg font-bold"
         />
 
-        <Section
-          title={t('form.steps')}
-          description={t('form.steps_hint')}
-          className="gap-2"
-        >
+        <Section title={t('form.steps')} description={t('form.steps_hint')} className="gap-2">
           {ai.available && (
             <div className="flex flex-wrap items-center gap-2">
-              <Button
-                variant="soft"
-                icon="sparkle"
-                loading={breaking}
-                onClick={breakDown}
-              >
-                {draft.steps.some((s) => !s.done) && aiPlan ? t('ai.try_again') : t('ai.break_down')}
+              <Button variant="soft" icon="sparkle" loading={breaking} onClick={breakDown}>
+                {draft.steps.some((s) => !s.done) && aiPlan
+                  ? t('ai.try_again')
+                  : t('ai.break_down')}
               </Button>
             </div>
           )}
@@ -359,7 +358,13 @@ export function QuestFormPage() {
               </p>
               <div className="flex flex-wrap gap-2">
                 {ai.available ? (
-                  <Button size="sm" variant="soft" icon="sparkle" loading={shrinking} onClick={shrinkFirst}>
+                  <Button
+                    size="sm"
+                    variant="soft"
+                    icon="sparkle"
+                    loading={shrinking}
+                    onClick={shrinkFirst}
+                  >
                     {t('first_step.shrink')}
                   </Button>
                 ) : (
@@ -455,7 +460,11 @@ export function QuestFormPage() {
                 value={draft.categoryId}
                 onChange={(categoryId) => update({ categoryId })}
               />
-              <TagsField idPrefix={id} value={draft.tagIds} onChange={(tagIds) => update({ tagIds })} />
+              <TagsField
+                idPrefix={id}
+                value={draft.tagIds}
+                onChange={(tagIds) => update({ tagIds })}
+              />
               <RecurrenceFields
                 idPrefix={id}
                 value={draft.recurrence}
@@ -494,7 +503,8 @@ export function QuestFormPage() {
             onClick={() => {
               const idx = (window.history.state as { idx?: number } | null)?.idx ?? 0;
               if (idx > 0) navigate(-1);
-              else navigate(editing ? `/quests/${questId}` : fromToday ? PATHS.today : PATHS.quests);
+              else
+                navigate(editing ? `/quests/${questId}` : fromToday ? PATHS.today : PATHS.quests);
             }}
           >
             {t('actions.cancel')}

@@ -27,11 +27,11 @@ import {
   undoDeleteQuest,
 } from '../model/actions';
 import { questActualMs, questGuessMinutes } from '../model/estimates';
-import { stepProgress } from '../components/QuestCard';
+import { stepProgress } from '../components/questUtils';
 import { QuestIcon } from '../components/QuestIcon';
 import { QuestMeta } from '../components/QuestMeta';
 import { StepChecklist } from '../components/StepChecklist';
-import { useStartQuest } from '../components/SwapSheet';
+import { useStartQuest } from '../components/useStartQuest';
 
 export function QuestDetailPage() {
   const { t } = useTranslation('quests');
@@ -203,9 +203,7 @@ export function QuestDetailPage() {
         </Card>
       )}
 
-      {quest.notes && (
-        <p className="whitespace-pre-wrap break-words text-text">{quest.notes}</p>
-      )}
+      {quest.notes && <p className="whitespace-pre-wrap break-words text-text">{quest.notes}</p>}
 
       {quest.status === 'done' && (guess || actual > 0) && (
         <Card tone="sunken" padding="sm">
@@ -240,7 +238,12 @@ export function QuestDetailPage() {
       <Section title={t('detail.more')}>
         <div className="flex flex-wrap gap-2">
           {quest.status === 'active' && (
-            <Button variant="secondary" size="sm" icon="quests" onClick={() => deactivateQuest(quest.id)}>
+            <Button
+              variant="secondary"
+              size="sm"
+              icon="quests"
+              onClick={() => deactivateQuest(quest.id)}
+            >
               {t('actions.to_backlog')}
             </Button>
           )}
@@ -263,7 +266,10 @@ export function QuestDetailPage() {
                 title: t('toast.template_saved', { title: quest.title }),
                 tone: 'success',
                 icon: 'check',
-                action: { label: t('templates.view'), onClick: () => navigate('/quests/templates') },
+                action: {
+                  label: t('templates.view'),
+                  onClick: () => navigate('/quests/templates'),
+                },
               });
             }}
           >
@@ -271,7 +277,12 @@ export function QuestDetailPage() {
             {t('actions.save_template')}
           </Button>
           {quest.status === 'archived' ? (
-            <Button variant="secondary" size="sm" icon="refresh" onClick={() => restoreQuest(quest.id)}>
+            <Button
+              variant="secondary"
+              size="sm"
+              icon="refresh"
+              onClick={() => restoreQuest(quest.id)}
+            >
               {t('actions.restore')}
             </Button>
           ) : (
@@ -282,7 +293,10 @@ export function QuestDetailPage() {
                 icon="archive"
                 onClick={async () => {
                   await archiveQuest(quest.id);
-                  showToast({ title: t('toast.archived', { title: quest.title }), icon: 'archive' });
+                  showToast({
+                    title: t('toast.archived', { title: quest.title }),
+                    icon: 'archive',
+                  });
                 }}
               >
                 {t('actions.archive')}

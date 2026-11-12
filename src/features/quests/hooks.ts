@@ -5,7 +5,15 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { useMemo } from 'react';
 import { estimateRatios, type EstimateRatios } from '@/domain/estimates';
 import { sortActiveQuests } from '@/domain/quests';
-import { db, type Category, type Quest, type QuestStatus, type Step, type Tag, type Uuid } from '@/data';
+import {
+  db,
+  type Category,
+  type Quest,
+  type QuestStatus,
+  type Step,
+  type Tag,
+  type Uuid,
+} from '@/data';
 import { useCategories, useTags } from '@/data/hooks';
 import { estimateSamples } from './model/estimates';
 

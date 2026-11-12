@@ -21,7 +21,7 @@ import {
 import { ensureTag } from '../model/actions';
 import { parseMinutes, type RecurrenceDraft } from '../model/draft';
 import { toggleIn } from '../model/filters';
-import { useCategoryName } from './QuestMeta';
+import { useCategoryName } from './labels';
 
 export function PriorityField({
   value,
@@ -126,8 +126,7 @@ export function DueFields({
   const format = useFormat();
   const shown =
     date && format.lang === 'fa'
-      ? format.date(date, 'long') +
-        (time ? ` · ${format.time(localDateTimeToMs(date, time))}` : '')
+      ? format.date(date, 'long') + (time ? ` · ${format.time(localDateTimeToMs(date, time))}` : '')
       : null;
   return (
     <fieldset className="flex min-w-0 flex-col gap-1.5">

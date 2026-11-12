@@ -5,7 +5,7 @@ import { useSettings } from '@/data';
 import { useFormat } from '@/i18n/useFormat';
 import { Button, buttonClass, Card, EmptyState, Icon, ProgressBar } from '@/ui';
 import { useCategoryMap, useQuestList, useStatusCounts, type QuestWithSteps } from '../hooks';
-import { questPath, stepProgress } from './QuestCard';
+import { questPath, stepProgress } from './questUtils';
 import { QuestIcon } from './QuestIcon';
 import { QuestMeta } from './QuestMeta';
 
@@ -145,9 +145,7 @@ function ActiveCard({
           <QuestIcon name="steps" className="mt-0.5" />
           <span className="min-w-0 break-words">
             {t('board.next_step', { step: next.title })}
-            {next.guess_minutes
-              ? ` · ${format.duration(next.guess_minutes * 60_000)}`
-              : ''}
+            {next.guess_minutes ? ` · ${format.duration(next.guess_minutes * 60_000)}` : ''}
           </span>
         </p>
       )}

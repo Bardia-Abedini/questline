@@ -18,12 +18,7 @@ import {
   type IconName,
 } from '@/ui';
 import { useCategoryMap, useQuestList, useStatusCounts, type QuestWithSteps } from '../hooks';
-import {
-  deleteQuest,
-  moveInboxToBacklog,
-  restoreQuest,
-  undoDeleteQuest,
-} from '../model/actions';
+import { deleteQuest, moveInboxToBacklog, restoreQuest, undoDeleteQuest } from '../model/actions';
 import {
   activeFilterCount,
   filterQuests,
@@ -32,10 +27,11 @@ import {
   type QuestFilters,
 } from '../model/filters';
 import { questGuessMinutes, questActualMs } from '../model/estimates';
-import { QuestCard, stepProgress } from '../components/QuestCard';
-import { useCategoryName } from '../components/QuestMeta';
+import { QuestCard } from '../components/QuestCard';
+import { stepProgress } from '../components/questUtils';
+import { useCategoryName } from '../components/labels';
 import { QuestIcon } from '../components/QuestIcon';
-import { useStartQuest } from '../components/SwapSheet';
+import { useStartQuest } from '../components/useStartQuest';
 
 type Tab = 'backlog' | 'inbox' | 'done' | 'archived';
 const TABS: readonly Tab[] = ['backlog', 'inbox', 'done', 'archived'];
@@ -185,7 +181,8 @@ function FilterPanel({
           </ToggleChip>
         )),
       )}
-      {tags && tags.length > 0 &&
+      {tags &&
+        tags.length > 0 &&
         group(
           t('form.tags'),
           tags.map((tag) => (
@@ -359,7 +356,11 @@ function QuestTabPanel({
     const actual = questActualMs(item.steps);
     const parts: string[] = [];
     if (item.quest.completed_at)
-      parts.push(t('done.finished_on', { date: format.date(Date.parse(item.quest.completed_at), 'dayMonth') }));
+      parts.push(
+        t('done.finished_on', {
+          date: format.date(Date.parse(item.quest.completed_at), 'dayMonth'),
+        }),
+      );
     const g = guess ? format.duration(guess * 60_000) : null;
     const a = actual > 0 ? format.duration(actual) : null;
     if (g && a) parts.push(t('estimate.guess_vs_actual', { guess: g, actual: a }));
