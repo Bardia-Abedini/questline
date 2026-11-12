@@ -5,10 +5,10 @@
  */
 import { useLiveQuery } from 'dexie-react-hooks';
 import type { LocalDate } from '@/domain/dates';
-import { clock } from './clock';
 import { db } from './db';
 import { getPlayerStats } from './derived';
 import { getSingleton, listQuestsByStatus, listSteps } from './repositories';
+import { useToday } from './useNow';
 import type { QuestStatus, Uuid } from './types';
 
 const alive = <T extends { deleted_at: string | null }>(rows: T[]) =>
@@ -28,7 +28,8 @@ export function useNotificationPrefs() {
 
 /** XP, gold, level and streak for the header. `today` defaults to the current local day. */
 export function usePlayerStats(today?: LocalDate) {
-  const day = today ?? clock.today();
+  const current = useToday();
+  const day = today ?? current;
   return useLiveQuery(() => getPlayerStats(day), [day]);
 }
 

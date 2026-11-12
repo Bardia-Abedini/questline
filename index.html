@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#f6ead6" />
+    <meta
+      name="description"
+      content="Turn real tasks into tiny quests. Start in two taps, get rewarded right away."
+    />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <title>Questline</title>
+    <script>
+      // Apply cached appearance before first paint (see src/app/preferences/preferences.ts).
+      (function () {
+        try {
+          var p = JSON.parse(localStorage.getItem('ql:prefs') || '{}');
+          var el = document.documentElement;
+          var dark =
+            p.theme === 'dark' ||
+            ((!p.theme || p.theme === 'system') &&
+              matchMedia('(prefers-color-scheme: dark)').matches);
+          el.dataset.theme = dark ? 'dark' : 'light';
+          if (p.language === 'fa') {
+            el.lang = 'fa';
+            el.dir = 'rtl';
+          }
+          if (p.textSize) el.dataset.textSize = p.textSize;
+          if (p.font) el.dataset.font = p.font;
+        } catch (e) {}
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

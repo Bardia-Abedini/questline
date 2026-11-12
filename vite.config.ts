@@ -49,6 +49,17 @@ export default defineConfig({
   resolve: {
     alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) },
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          react: ['react', 'react-dom', 'react-router'],
+          data: ['dexie', 'dexie-react-hooks'],
+          i18n: ['i18next', 'react-i18next'],
+        },
+      },
+    },
+  },
   server: { port: 5173 },
   preview: { port: 4173 },
   test: {
