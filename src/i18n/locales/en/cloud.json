@@ -1,1 +1,22 @@
-{}
+{
+  "ai_mock": {
+    "break": {
+      "gather": "Gather what you need for “{{title}}”",
+      "first_bit": "Do the first tiny bit of “{{title}}”",
+      "main": "Work on the main part",
+      "next": "Keep going with the next part",
+      "polish": "Tidy up the details",
+      "check": "Look it over once",
+      "wrap": "Wrap up and put things away"
+    },
+    "split": {
+      "ready": "Get ready: {{step}}",
+      "first_half": "Do the first half: {{step}}",
+      "finish": "Finish: {{step}}"
+    },
+    "explain": {
+      "with_reasons": "“{{quest}}” is a good pick now: {{reasons}}.",
+      "plain": "“{{quest}}” is a good place to start."
+    }
+  }
+}

@@ -73,24 +73,45 @@ Shared files owned by Foundation (`src/domain`, `src/data`, `src/services`, `src
 - Lint enforces that feature folders import other features only through their public files:
   `slots.tsx`, `routes.tsx`, `settings.tsx`. Never import another feature's internals.
 
+### Shared behaviour: who builds what
+
+These decisions are fixed so no two packages build the same thing:
+
+- **No-timer warning** ("This one looks like it needs focus time. Did you really finish
+  it?") and the **estimate suggestion** in the quest form ("you usually take about 1.8x"):
+  Quests, using `needsNoTimerWarning`, `estimateRatios`, `ratioFor` and
+  `suggestAdjustedGuess` from `@/domain`. Pass `confirmedWithoutTimer: true` to
+  `completeStep` after the player confirms.
+- **Actual time on steps**: Focus writes `steps.actual_ms` (adds the session's focused time
+  when a session ends). Quests only reads it ("actual vs guess" on completion).
+- **Boss quests**: the boss toggle and the health bar on a quest are Quests' (`isBossEligible`,
+  `bossHealth`; set `is_boss` and `boss_started_at`). The boss badge and the defeat effects
+  are Game's (listen to `quest.became_boss` and `quest.completed` with `isBoss`).
+- **Brain dump** (`/brain-dump`) and the **calendar day view** (`/calendar`) are Cloud routes
+  in `features/cloud/routes.tsx`. Quests only links to them.
+- **"I got distracted" notes**: Focus creates them as Inbox quests through the quests
+  repository (`createQuest({ title, status: 'inbox', source: 'distraction' })`), stores the
+  `distraction_notes` row with `inbox_quest_id`, and emits `distraction.logged`.
+
 ## Slots: how packages appear in shared screens
 
 The shell and shared pages already render a placeholder component from each package. Keep
 the export name and replace the body. No shared file needs editing.
 
-| Slot                             | File                                                   | Rendered by                                 |
-| -------------------------------- | ------------------------------------------------------ | ------------------------------------------- |
-| `QuickCaptureSlot`               | `features/quests/slots.tsx`                            | header (global "+", `Q` shortcut)           |
-| `OverduePromptSlot`              | `features/quests/slots.tsx`                            | shell, once                                 |
-| `ActiveSessionSlot`              | `features/focus/slots.tsx`                             | top of every shell page                     |
-| `AvatarBadge`                    | `features/game/slots.tsx`                              | header (takes `size` in px)                 |
-| `DailyQuestsSlot`                | `features/game/slots.tsx`                              | Today board                                 |
-| `RewardEffectsSlot`              | `features/game/slots.tsx`                              | app root, on every route (incl. focus mode) |
-| `SyncStatusSlot`                 | `features/cloud/slots.tsx`                             | header                                      |
-| `EnergyCheckSlot`, `WhatNowSlot` | `features/insights/slots.tsx`                          | Today board                                 |
-| `OnboardingGate`                 | `features/onboarding/slots.tsx`                        | app root                                    |
-| `SettingsSection`                | `features/{quests,focus,game,cloud}/settings.tsx`      | Settings page                               |
-| `setup()`                        | `features/{quests,focus,game,cloud,insights}/setup.ts` | once at start, after the DB is ready        |
+| Slot                             | File                                                   | Rendered by                                    |
+| -------------------------------- | ------------------------------------------------------ | ---------------------------------------------- |
+| `QuickCaptureSlot`               | `features/quests/slots.tsx`                            | header (global "+", `Q` shortcut)              |
+| `OverduePromptSlot`              | `features/quests/slots.tsx`                            | shell, once                                    |
+| `ActiveSessionSlot`              | `features/focus/slots.tsx`                             | top of every shell page                        |
+| `AvatarBadge`                    | `features/game/slots.tsx`                              | header (takes `size` in px)                    |
+| `DailyQuestsSlot`                | `features/game/slots.tsx`                              | Today board                                    |
+| `RewardEffectsSlot`              | `features/game/slots.tsx`                              | app root, on every route (incl. focus mode)    |
+| `SyncStatusSlot`                 | `features/cloud/slots.tsx`                             | header                                         |
+| `useAi()` (hook)                 | `features/cloud/slots.tsx`                             | any package with AI features (see "AI client") |
+| `EnergyCheckSlot`, `WhatNowSlot` | `features/insights/slots.tsx`                          | Today board                                    |
+| `OnboardingGate`                 | `features/onboarding/slots.tsx`                        | app root                                       |
+| `SettingsSection`                | `features/{quests,focus,game,cloud}/settings.tsx`      | Settings page                                  |
+| `setup()`                        | `features/{quests,focus,game,cloud,insights}/setup.ts` | once at start, after the DB is ready           |
 
 The Today page (`features/today/TodayPage.tsx`) belongs to Quests and already places the Game
 and Insights slots; keep them when you rebuild it.
@@ -166,6 +187,51 @@ render their own `<main id="main">`. `/dev/ui` is reserved for the gallery.
   start-up by `ensureLocalData()`. Use `getSettings()` / `updateSettings(patch)` etc.
 - Level, XP, gold and streak are never stored. They are derived from `ledger_events`
   (`usePlayerStats()`, `getPlayerStats(day)`).
+
+## Starting focus from anywhere
+
+Any package starts a focus session by navigating to a focus link built with `focusPath`
+from `src/app/routing.ts`:
+
+```ts
+navigate(focusPath({ stepId: step.id })); // player's default length
+navigate(focusPath({ stepId: step.id, minutes: 5 })); // "5-minute just start"
+```
+
+This produces `/focus?step=<id>[&minutes=<n>]`. On arrival Focus reads it with
+`parseFocusSearch(location.search)` and creates and starts the session immediately (no
+extra tap, so Today's "tap quest, tap Start" stays two taps). If a session is already open,
+Focus resumes that one instead of starting a second. `minutes` must be a whole number from 1
+to 240; anything else is ignored (null) and the default length is used.
+
+## AI client
+
+AI features call the client from `useAi()` in `@/features/cloud/slots` (types in
+`features/cloud/aiTypes.ts`, re-exported from slots). Cloud replaces the body later; the
+contract stays:
+
+| Member                                                | Returns                                                                      |
+| ----------------------------------------------------- | ---------------------------------------------------------------------------- |
+| `status`                                              | `'guest' \| 'unconfigured' \| 'offline' \| 'limit_reached' \| 'ready'`       |
+| `available`                                           | `true` only when `status === 'ready'`                                        |
+| `breakDown({ title, notes? })`                        | `AiStepSuggestion[]`: 3 to 7 steps, the first under 5 minutes                |
+| `splitStep({ questTitle, stepTitle, guessMinutes? })` | `AiStepSuggestion[]` ("I'm stuck")                                           |
+| `suggestMeta({ title, notes? })`                      | `{ priority, difficulty, guessMinutes }`                                     |
+| `classifyQuick({ steps: { title, guessMinutes }[] })` | `boolean[]`, one `quick` flag per step                                       |
+| `brainDump({ text })`                                 | `AiQuestSuggestion[]` for review before saving                               |
+| `explainPick({ questTitle, reasons })`                | one-line string for "What should I do now?" (pass translated reason phrases) |
+
+`AiStepSuggestion = { title, guessMinutes, quick }`;
+`AiQuestSuggestion = { title, notes?, priority, difficulty, guessMinutes, steps }`.
+
+- Callers never pass a language: replies follow the current i18n language.
+- Check `available` before showing AI buttons, and always keep the non-AI path working
+  (guest, offline, limit reached). Every method throws `AiUnavailableError` (with `.status`)
+  when unavailable; show a gentle message per status, never an error screen.
+- Until Cloud lands the client is a guest (unavailable). For e2e tests of AI flows set
+  `localStorage['ql.ai.mock'] = '1'` before the page loads (e.g. `page.addInitScript`): the
+  client becomes a deterministic mock (`features/cloud/aiMock.ts`, status `ready`) with
+  plausible answers derived from the input, in English or Persian, after about 150 ms.
 
 ## Rewards: one way for everyone
 
