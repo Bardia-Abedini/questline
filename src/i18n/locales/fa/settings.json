@@ -1,0 +1,32 @@
+{
+  "title": "تنظیمات",
+  "subtitle": "کوئست‌لاین را مثل خانهٔ خودت کن.",
+  "language": {
+    "title": "زبان",
+    "label": "زبان برنامه"
+  },
+  "appearance": {
+    "title": "ظاهر",
+    "theme": "پوسته",
+    "theme_system": "دستگاه",
+    "theme_light": "روشن",
+    "theme_dark": "تیره",
+    "text_size": "اندازهٔ متن",
+    "text_normal": "معمولی",
+    "text_large": "بزرگ",
+    "text_larger": "بزرگ‌تر"
+  },
+  "accessibility": {
+    "title": "دسترس‌پذیری",
+    "dyslexic_font": "قلم مناسب خوانش‌پریشی",
+    "dyslexic_font_hint": "برای متن انگلیسی از OpenDyslexic با فاصلهٔ خط بیشتر استفاده می‌کند. فارسی با وزیرمتن می‌ماند.",
+    "motion": "حرکت",
+    "motion_system": "دستگاه",
+    "motion_reduce": "کم",
+    "motion_full": "کامل",
+    "sound": "صداها",
+    "sound_hint": "زنگ‌ها و صدای جایزه‌ها.",
+    "haptics": "لرزش",
+    "haptics_hint": "لرزشی کوچک هنگام جایزه، اگر دستگاه پشتیبانی کند."
+  }
+}

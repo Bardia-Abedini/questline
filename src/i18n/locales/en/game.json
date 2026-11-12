@@ -1,0 +1,18 @@
+{
+  "home": {
+    "title": "Home",
+    "subtitle": "Your adventurer and their cottage.",
+    "empty": {
+      "title": "Your cottage is being built",
+      "body": "Soon you will dress your adventurer and decorate a cozy cottage with what you earn."
+    }
+  },
+  "shop": {
+    "title": "Shop",
+    "subtitle": "Spend the gold you earned.",
+    "empty": {
+      "title": "The shop is opening soon",
+      "body": "Your own real-life rewards, cosmetics and power-ups will be sold here."
+    }
+  }
+}

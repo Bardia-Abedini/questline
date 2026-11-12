@@ -1,0 +1,32 @@
+{
+  "title": "Settings",
+  "subtitle": "Make Questline feel like home.",
+  "language": {
+    "title": "Language",
+    "label": "App language"
+  },
+  "appearance": {
+    "title": "Appearance",
+    "theme": "Theme",
+    "theme_system": "Device",
+    "theme_light": "Light",
+    "theme_dark": "Dark",
+    "text_size": "Text size",
+    "text_normal": "Normal",
+    "text_large": "Large",
+    "text_larger": "Larger"
+  },
+  "accessibility": {
+    "title": "Accessibility",
+    "dyslexic_font": "Dyslexia-friendly font",
+    "dyslexic_font_hint": "Uses OpenDyslexic with a little more space between lines. Persian keeps Vazirmatn.",
+    "motion": "Motion",
+    "motion_system": "Device",
+    "motion_reduce": "Reduced",
+    "motion_full": "Full",
+    "sound": "Sounds",
+    "sound_hint": "Chimes and reward sounds.",
+    "haptics": "Vibration",
+    "haptics_hint": "A small buzz on rewards, where the device supports it."
+  }
+}

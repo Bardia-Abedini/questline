@@ -1,0 +1,7 @@
+{
+  "title": "Today",
+  "empty": {
+    "title": "Your quest board is ready",
+    "body": "Your active quests will gather here, with a big Continue button on the one to do next."
+  }
+}

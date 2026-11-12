@@ -1,0 +1,8 @@
+{
+  "title": "Quests",
+  "subtitle": "Backlog, inbox, done and archive.",
+  "empty": {
+    "title": "No quests yet",
+    "body": "Every big task can become a quest made of tiny steps. Your quest log will live here."
+  }
+}
