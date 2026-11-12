@@ -11,7 +11,6 @@ export function useTick(intervalMs = 250, active = true): number {
   const [now, setNow] = useState(() => clock.now());
   useEffect(() => {
     if (!active) return;
-    setNow(clock.now());
     const id = window.setInterval(() => setNow(clock.now()), intervalMs);
     const onVisible = () => setNow(clock.now());
     document.addEventListener('visibilitychange', onVisible);

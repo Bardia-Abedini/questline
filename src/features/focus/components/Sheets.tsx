@@ -166,7 +166,13 @@ export function LengthSheet({
     void pick(clampMinutes(n));
   };
   return (
-    <Sheet open={open} onClose={onClose} title={t('length.title')} description={t('length.description')} size="sm">
+    <Sheet
+      open={open}
+      onClose={onClose}
+      title={t('length.title')}
+      description={t('length.description')}
+      size="sm"
+    >
       <div className="flex flex-col gap-4">
         <div role="group" aria-label={t('length.presets')} className="flex flex-wrap gap-2">
           {options.map((m) => (
@@ -198,16 +204,10 @@ export function LengthSheet({
   );
 }
 
-export const AMBIENCE_TRACKS: readonly AmbienceTrack[] = ['none', 'rain', 'cafe', 'lofi', 'brown_noise'];
+const AMBIENCE_TRACKS: readonly AmbienceTrack[] = ['none', 'rain', 'cafe', 'lofi', 'brown_noise'];
 
 /** The ambience controls (track and volume), shared by focus mode and settings. */
-export function AmbienceControls({
-  track,
-  volume,
-}: {
-  track: AmbienceTrack;
-  volume: number;
-}) {
+export function AmbienceControls({ track, volume }: { track: AmbienceTrack; volume: number }) {
   const { t } = useTranslation('focus');
   const sound = usePreferences((s) => s.sound);
   const [local, setLocal] = useState(volume);

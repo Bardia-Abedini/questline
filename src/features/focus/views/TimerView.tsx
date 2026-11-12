@@ -78,9 +78,7 @@ export function TimerView({
   useEffect(() => {
     if (!announcedStart.current) {
       announcedStart.current = true;
-      setAnnouncement(
-        t('announce.started', { time: format.duration(remaining), step: stepTitle }),
-      );
+      setAnnouncement(t('announce.started', { time: format.duration(remaining), step: stepTitle }));
     }
     const mark = paused ? null : minuteMarkCrossed(prevRemaining.current, remaining);
     prevRemaining.current = remaining;
@@ -309,7 +307,9 @@ function SwitchOffer({
   const [other, setOther] = useState<Step | null | undefined>(undefined);
   const [hidden, setHidden] = useState(false);
   useEffect(() => {
-    void db.steps.get(otherStepId).then((s) => setOther(s && !s.deleted_at && !s.done_at ? s : null));
+    void db.steps
+      .get(otherStepId)
+      .then((s) => setOther(s && !s.deleted_at && !s.done_at ? s : null));
   }, [otherStepId]);
   if (hidden || !other) return null;
   const doSwitch = async () => {
