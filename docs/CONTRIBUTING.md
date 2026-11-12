@@ -22,8 +22,13 @@ you need is not covered, say so in your report instead of editing a file you do 
 
 All five of lint, typecheck, test, build and e2e must pass before a package is handed in.
 Playwright uses the container's Chromium at `/opt/pw-browsers/chromium` when it exists. Do
-not run `playwright install`. If port 4173 already has a server, Playwright reuses it, so
-stop stale `vite preview` processes before `npm run e2e`.
+not run `playwright install`. A fresh git worktree has no `node_modules`: run `npm ci`
+first.
+
+E2E port: by default Playwright builds and serves on port 4173 and reuses a server already
+running there, so stop stale `vite preview` processes first. To run e2e in several worktrees
+at the same time, give each its own port: `E2E_PORT=4180 npm run e2e`. With `E2E_PORT` set,
+an existing server on that port is never reused (the run fails fast if the port is busy).
 
 ## Folder layout
 

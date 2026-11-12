@@ -6,7 +6,10 @@ import { defineConfig, devices } from '@playwright/test';
 const LOCAL_CHROMIUM = '/opt/pw-browsers/chromium';
 const executablePath = existsSync(LOCAL_CHROMIUM) ? LOCAL_CHROMIUM : undefined;
 
-const PORT = 4173;
+// E2E_PORT lets several worktrees run e2e at the same time (default 4173). When it is set,
+// an existing server on that port is never reused, so each run tests its own build.
+const PORT = Number(process.env.E2E_PORT ?? 4173);
+const reuseExistingServer = !process.env.CI && !process.env.E2E_PORT;
 
 export default defineConfig({
   testDir: './e2e',
@@ -38,7 +41,7 @@ export default defineConfig({
   webServer: {
     command: `npx vite build --logLevel warn && npx vite preview --port ${PORT} --strictPort`,
     url: `http://localhost:${PORT}`,
-    reuseExistingServer: !process.env.CI,
+    reuseExistingServer,
     timeout: 180_000,
   },
 });
