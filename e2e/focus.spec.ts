@@ -193,7 +193,12 @@ test('"ended while you were away" after closing and reopening past the end', asy
   await expect(
     again.getByRole('heading', { name: 'Your timer ended while you were away' }),
   ).toBeVisible();
-  for (const name of ['Take a 5-minute break', 'Keep going', 'Done with this step', 'Stop for now']) {
+  for (const name of [
+    'Take a 5-minute break',
+    'Keep going',
+    'Done with this step',
+    'Stop for now',
+  ]) {
     await expect(again.getByRole('button', { name })).toBeVisible();
   }
   const sessions = await again.evaluate(() => window.__qlFocus.sessions());
@@ -316,6 +321,7 @@ test('length presets and the 5-minute "just start" option', async ({ page }) => 
   // A link can ask for 5 minutes directly.
   await page.getByRole('button', { name: 'Stop', exact: true }).click();
   await page.getByRole('dialog').getByRole('button', { name: 'Stop for now' }).click();
+  await expect(page.getByRole('heading', { name: 'Saved. Rest is part of it.' })).toBeVisible();
   await startFocus(page, stepIds[1]!, 5);
   await expect(timer(page)).toHaveText(/^(5:00|4:5\d)$/);
 });
