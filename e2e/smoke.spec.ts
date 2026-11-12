@@ -164,4 +164,38 @@ test('works offline after the first visit', async ({ page, context }, info) => {
   await page.goto('/quests');
   await expect(page.getByRole('heading', { level: 1, name: 'Quests' })).toBeVisible();
   await context.setOffline(false);
+  // The "works offline" toast is shown once per device, never again on later visits.
+  await page.reload();
+  await expect(page.getByTestId('header-level')).toBeVisible();
+  await page.waitForTimeout(1000);
+  await expect(page.getByText('Questline now works offline')).toHaveCount(0);
+});
+
+test('a brand-new device keeps all cached appearance preferences', async ({ page }) => {
+  await page.addInitScript(() => {
+    if (sessionStorage.getItem('seeded')) return;
+    sessionStorage.setItem('seeded', '1');
+    localStorage.setItem(
+      'ql:prefs',
+      JSON.stringify({ theme: 'dark', textSize: 'larger', font: 'dyslexic', motion: 'reduce' }),
+    );
+  });
+  await page.goto('/');
+  await expect(page.getByTestId('header-level')).toBeVisible();
+  await page.reload(); // the settings row, not the cache, decides now
+  const html = page.locator('html');
+  await expect(html).toHaveAttribute('data-theme', 'dark');
+  await expect(html).toHaveAttribute('data-text-size', 'larger');
+  await expect(html).toHaveAttribute('data-font', 'dyslexic');
+  await expect(html).toHaveAttribute('data-motion', 'reduce');
+  await page
+    .getByRole('navigation', { name: 'Main' })
+    .getByRole('link', { name: 'Settings', exact: true })
+    .click();
+  await expect(page.getByRole('radio', { name: 'Larger' })).toBeChecked();
+  await expect(page.getByRole('switch', { name: 'Dyslexia-friendly font' })).toHaveAttribute(
+    'aria-checked',
+    'true',
+  );
+  await expectNoHorizontalScroll(page);
 });

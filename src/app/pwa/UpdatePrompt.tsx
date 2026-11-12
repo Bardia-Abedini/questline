@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { dismissToast, showToast } from '@/ui';
+import { showOfflineReadyOnce } from './offlineReady';
 
 /**
  * Registers the service worker (production builds only) and shows a toast when a new
@@ -29,7 +30,10 @@ export function UpdatePrompt() {
           });
         },
         onOfflineReady() {
-          showToast({ tone: 'success', icon: 'cloud', title: t('pwa.offline_ready') });
+          // Once ever per device, not once per visit.
+          void showOfflineReadyOnce(() =>
+            showToast({ tone: 'success', icon: 'cloud', title: t('pwa.offline_ready') }),
+          );
         },
       });
     });

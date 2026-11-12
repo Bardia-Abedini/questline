@@ -22,7 +22,8 @@ export interface SegmentedControlProps<V extends string> {
 }
 
 /**
- * One choice out of a few (radiogroup). Arrow keys move the selection and follow the
+ * One choice out of a few (radiogroup). When the options do not fit on one line (larger text,
+ * dyslexia font) they wrap onto a second row instead of overflowing. Arrow keys move the selection and follow the
  * reading direction (ArrowRight moves backwards in RTL).
  */
 export function SegmentedControl<V extends string>({
@@ -66,7 +67,7 @@ export function SegmentedControl<V extends string>({
         role="radiogroup"
         aria-labelledby={labelId}
         onKeyDown={onKeyDown}
-        className="flex w-full rounded-full border border-border bg-surface-2 p-1"
+        className="flex w-full flex-wrap gap-y-1 rounded-[1.375rem] border border-border bg-surface-2 p-1"
       >
         {options.map((o, i) => {
           const selected = o.value === value;
@@ -82,13 +83,13 @@ export function SegmentedControl<V extends string>({
               tabIndex={selected ? 0 : -1}
               onClick={() => onChange(o.value)}
               className={cx(
-                'inline-flex flex-1 items-center justify-center gap-1.5 rounded-full font-bold transition-[background-color,color,box-shadow] duration-150 ease-cozy',
+                'inline-flex min-w-0 flex-auto items-center justify-center gap-1.5 rounded-full font-bold transition-[background-color,color,box-shadow] duration-150 ease-cozy',
                 size === 'sm' ? 'min-h-8 px-2.5 text-sm' : 'min-h-10 px-3 text-sm sm:text-base',
                 selected ? 'bg-surface text-text shadow-sm' : 'text-muted hover:text-text',
               )}
             >
               {o.icon && <Icon name={o.icon} size="1.1em" />}
-              <span className="truncate">{o.label}</span>
+              <span className="min-w-0 text-center leading-tight break-words">{o.label}</span>
             </button>
           );
         })}

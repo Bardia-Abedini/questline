@@ -8,7 +8,7 @@ import {
   defaultSettings,
   defaultStreakState,
 } from './defaults';
-import type { LanguagePref } from './types';
+import type { LanguagePref, NewRow, Settings } from './types';
 
 const SEEDED_KEY = 'seeded_v1';
 const DEVICE_ID_KEY = 'device_id';
@@ -18,6 +18,11 @@ export interface BootstrapOptions {
   language?: LanguagePref;
   /** IANA time zone of the device. */
   timezone?: string;
+  /**
+   * Initial values for a brand-new settings row (e.g. appearance preferences cached on this
+   * device). Ignored when the row already exists.
+   */
+  settings?: Partial<NewRow<Settings>>;
 }
 
 /**
@@ -40,7 +45,11 @@ export async function ensureLocalData(options: BootstrapOptions = {}): Promise<v
       db.local_meta,
     ],
     async () => {
-      await ensureSingleton('settings', defaultSettings(language));
+      await ensureSingleton('settings', {
+        ...defaultSettings(language),
+        ...options.settings,
+        language,
+      });
       await ensureSingleton('profile', defaultProfile(timezone));
       await ensureSingleton('streak_state', defaultStreakState());
       await ensureSingleton('notification_prefs', defaultNotificationPrefs());

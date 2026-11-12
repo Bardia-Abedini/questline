@@ -180,6 +180,34 @@ export function watchSystemPreferences(): () => void {
   return () => queries.forEach((q) => q.removeEventListener('change', onChange));
 }
 
+const VALID: { [K in keyof Preferences]: readonly unknown[] } = {
+  theme: ['system', 'light', 'dark'],
+  language: ['en', 'fa'],
+  textSize: ['normal', 'large', 'larger'],
+  font: ['default', 'dyslexic'],
+  motion: ['system', 'reduce', 'full'],
+  sound: [true, false],
+  haptics: [true, false],
+};
+
+/**
+ * Valid cached preferences as settings columns, used to seed the settings row on a
+ * brand-new database so the device keeps what it showed before (all fields, not just
+ * language). Unknown or invalid values are dropped.
+ */
+export function snapshotAsSettings(
+  snapshot: Partial<Preferences> = readSnapshot(),
+): Partial<Settings> {
+  const out: Partial<Settings> = {};
+  for (const key of Object.keys(TO_COLUMN) as Array<keyof Preferences>) {
+    const value = snapshot[key];
+    if (value !== undefined && VALID[key].includes(value)) {
+      (out as Record<string, unknown>)[TO_COLUMN[key]] = value;
+    }
+  }
+  return out;
+}
+
 /** Applies the cached snapshot before the first render. */
 export function applyInitialPreferences(): void {
   const s = usePreferences.getState();

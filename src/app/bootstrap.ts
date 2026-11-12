@@ -1,6 +1,10 @@
 import { ensureLocalData } from '@/data/bootstrap';
 import { detectLanguage, initI18n, isLanguage } from '@/i18n';
-import { applyInitialPreferences, readSnapshot } from './preferences/preferences';
+import {
+  applyInitialPreferences,
+  readSnapshot,
+  snapshotAsSettings,
+} from './preferences/preferences';
 import { setupFeatures } from './features';
 
 /**
@@ -9,12 +13,15 @@ import { setupFeatures } from './features';
  */
 export async function bootstrap(): Promise<void> {
   applyInitialPreferences();
-  const cached = readSnapshot().language;
+  const snapshot = readSnapshot();
+  const cached = snapshot.language;
   const language = isLanguage(cached) ? cached : detectLanguage(navigator);
   initI18n(language);
   await ensureLocalData({
     language,
     timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+    // A new database (first visit, or storage cleared) keeps the appearance cached on this device.
+    settings: snapshotAsSettings(snapshot),
   });
   setupFeatures();
 }
