@@ -16,7 +16,13 @@ import {
   showToast,
   Spinner,
 } from '@/ui';
-import { useCategoryMap, useQuestWithSteps, useRecurrenceRule, useTagMap } from '../hooks';
+import {
+  useCategoryMap,
+  useQuestWithSteps,
+  useRecurrenceRule,
+  useStartedQuestIds,
+  useTagMap,
+} from '../hooks';
 import {
   archiveQuest,
   deactivateQuest,
@@ -44,6 +50,7 @@ export function QuestDetailPage() {
   const rule = useRecurrenceRule(item?.quest.recurrence_rule_id);
   const settings = useSettings();
   const now = useNow();
+  const started = useStartedQuestIds();
   const { start, sheet } = useStartQuest();
 
   if (item === undefined)
@@ -131,7 +138,7 @@ export function QuestDetailPage() {
             className="sm:w-auto sm:self-start"
             onClick={() => start(quest)}
           >
-            {done > 0 ? t('actions.continue') : t('actions.start')}
+            {done > 0 || started?.has(quest.id) ? t('actions.continue') : t('actions.start')}
           </Button>
           {total > 1 && (
             <ProgressBar

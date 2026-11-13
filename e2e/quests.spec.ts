@@ -76,6 +76,53 @@ async function stepIds(page: Page, title: string): Promise<string[]> {
 
 const stepList = (page: Page) => page.getByRole('list', { name: 'Steps' });
 
+/** Open (not ended) focus sessions for a step, read straight from IndexedDB. */
+async function openSessions(page: Page, stepId: string): Promise<number> {
+  return page.evaluate(
+    (id) =>
+      new Promise<number>((resolve, reject) => {
+        const req = indexedDB.open('questline');
+        req.onerror = () => reject(req.error);
+        req.onsuccess = () => {
+          const all = req.result
+            .transaction('focus_sessions')
+            .objectStore('focus_sessions')
+            .getAll();
+          all.onsuccess = () =>
+            resolve(
+              (
+                all.result as {
+                  step_id: string;
+                  ended_at: string | null;
+                  deleted_at: string | null;
+                }[]
+              ).filter((x) => x.step_id === id && x.ended_at === null && x.deleted_at === null)
+                .length,
+            );
+        };
+      }),
+    stepId,
+  );
+}
+
+/** Focus mode is showing this step with a running timer, backed by one open session. */
+async function expectFocusOn(page: Page, stepTitle: string, stepId: string) {
+  await expect(page).toHaveURL(/\/focus\/[0-9a-f-]{36}$/);
+  await expect(page.getByRole('heading', { level: 1, name: stepTitle })).toBeVisible();
+  const timer = page.getByTestId('focus-timer');
+  await expect(timer).toBeVisible();
+  const before = await timer.textContent();
+  await expect(timer).not.toHaveText(before ?? '', { timeout: 3000 });
+  expect(await openSessions(page, stepId)).toBe(1);
+}
+
+/** Ends the running session so opening the app no longer returns to focus mode. */
+async function stopFocus(page: Page) {
+  await page.getByRole('button', { name: 'Stop', exact: true }).click();
+  await page.getByRole('dialog').getByRole('button', { name: 'Stop for now' }).click();
+  await expect(page.getByRole('heading', { name: 'Saved. Rest is part of it.' })).toBeVisible();
+}
+
 async function openTab(page: Page, name: string) {
   await page.getByRole('tab', { name: new RegExp(`^${name}`) }).click();
 }
@@ -134,15 +181,31 @@ test('two taps from opening the app land in focus on the right step', async ({ p
     fromToday: true,
   });
   const [first] = await stepIds(page, 'Find the worksheet');
-  // Tap 1: the big Continue on the top quest goes straight to focus.
+  // Never started, so the big button says Start; one tap starts the timer on the first step.
   await open(page, '/');
-  await page.getByRole('button', { name: /^Continue/ }).click();
-  await expect(page).toHaveURL(new RegExp(`/focus\\?step=${first}$`));
-  // Or: tap the quest, then tap Start.
+  await expect(page.getByRole('button', { name: /^Continue/ })).toHaveCount(0);
+  await page.getByRole('button', { name: /^Start/ }).click();
+  await expectFocusOn(page, 'Find the worksheet', first!);
+  await stopFocus(page);
+  // After a session it says Continue.
+  await open(page, '/');
+  await expect(page.getByRole('button', { name: /^Continue/ })).toBeVisible();
+});
+
+test('tapping the quest, then Start, also lands in focus', async ({ page }) => {
+  await addQuest(page, {
+    title: 'Math homework',
+    steps: [
+      ['Find the worksheet', 2],
+      ['Do problems 1-5', 20],
+    ],
+    fromToday: true,
+  });
+  const [first] = await stepIds(page, 'Find the worksheet');
   await open(page, '/');
   await page.getByRole('link', { name: 'Math homework' }).click();
   await page.getByRole('button', { name: 'Start', exact: true }).click();
-  await expect(page).toHaveURL(new RegExp(`/focus\\?step=${first}$`));
+  await expectFocusOn(page, 'Find the worksheet', first!);
 });
 
 test('checking off a quick step pays XP and gold; the last step finishes the quest', async ({
@@ -192,9 +255,10 @@ test('the no-timer warning can start the timer instead, and is shown only once',
   const [id] = await stepIds(page, 'Read pages 1-20');
   await page.getByRole('checkbox', { name: /Read pages 1-20/ }).click();
   await page.getByRole('button', { name: 'Start timer' }).click();
-  await expect(page).toHaveURL(new RegExp(`/focus\\?step=${id}$`));
-  await page.goBack();
-  await expect(page.getByRole('heading', { level: 1, name: 'Read chapter' })).toBeVisible();
+  await expectFocusOn(page, 'Read pages 1-20', id!);
+  await stopFocus(page);
+  await page.goto('/quests');
+  await page.getByRole('link', { name: 'Read chapter' }).click();
   await page.getByRole('checkbox', { name: /Read pages 1-20/ }).click();
   await expect(page.getByRole('checkbox', { name: /Read pages 1-20/ })).toBeChecked();
   await expect(page.getByRole('dialog')).toHaveCount(0);
@@ -214,7 +278,8 @@ test('a 4th quest opens the swap sheet; one tap swaps and starts', async ({ page
   await expectNoHorizontalScroll(page);
   const [stepD] = await stepIds(page, 'Quest D');
   await sheet.getByRole('button', { name: 'Send “Quest B” to the backlog and swap' }).click();
-  await expect(page).toHaveURL(new RegExp(`/focus\\?step=${stepD}$`));
+  await expectFocusOn(page, 'Quest D', stepD!);
+  await stopFocus(page);
   await open(page, '/');
   const board = page.getByRole('region', { name: 'Active quests' });
   await expect(board.getByRole('link', { name: 'Quest D' })).toBeVisible();
@@ -419,6 +484,65 @@ test('search and filters narrow the quest log', async ({ page }) => {
   await expectNoHorizontalScroll(page);
 });
 
+test('a thought parked in focus mode shows in the Inbox with its origin and can be sorted', async ({
+  page,
+}) => {
+  await addQuest(page, { title: 'Essay', steps: [['Open the doc', 10]] });
+  const [id] = await stepIds(page, 'Open the doc');
+  await page.getByRole('button', { name: 'Start', exact: true }).click();
+  await expectFocusOn(page, 'Open the doc', id!);
+  await page.getByRole('button', { name: 'I got distracted' }).click();
+  const sheet = page.getByRole('dialog', { name: 'Park that thought' });
+  await sheet.getByLabel('What popped up?').fill('Email the teacher');
+  await sheet.getByRole('button', { name: 'Park it in Inbox' }).click();
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+  await stopFocus(page);
+  await open(page, '/quests?tab=inbox');
+  const card = page.getByRole('listitem').filter({ hasText: 'Email the teacher' });
+  await expect(card.getByText('From a focus session')).toBeVisible();
+  await page.getByRole('link', { name: 'Sort “Email the teacher” into a quest' }).click();
+  await page.getByRole('button', { name: 'Save as quest' }).click();
+  await expect(page.getByText('Inbox is empty')).toBeVisible();
+  await openTab(page, 'Backlog');
+  await expect(page.getByRole('link', { name: 'Email the teacher', exact: true })).toBeVisible();
+});
+
+test('across packages: add a quest, start from Today, finish the step in focus, see it everywhere', async ({
+  page,
+}) => {
+  const errors = trackErrors(page);
+  await page.clock.install();
+  await addQuest(page, {
+    title: 'Write the essay',
+    steps: [
+      ['Open the document', 10],
+      ['Write the intro', 15],
+    ],
+    fromToday: true,
+  });
+  const [first] = await stepIds(page, 'Open the document');
+  await open(page, '/');
+  await expect(page.getByTestId('header-gold')).toHaveText(/^Gold:\s*0$/);
+  const xpBar = page.getByRole('progressbar', { name: 'Experience' });
+  await expect(xpBar).toHaveAttribute('aria-valuenow', '0');
+  await page.getByRole('button', { name: /^Start/ }).click();
+  await expectFocusOn(page, 'Open the document', first!);
+  await page.clock.fastForward('12:00');
+  await page.getByRole('button', { name: 'Done', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Step done!' })).toBeVisible();
+  await page.getByRole('button', { name: 'Stop for now' }).click();
+  await expect(page).not.toHaveURL(/\/focus/);
+  await open(page, '/');
+  await expect(page.getByTestId('header-gold')).not.toHaveText(/^Gold:\s*0$/);
+  await expect(xpBar).not.toHaveAttribute('aria-valuenow', '0');
+  await expect(page.getByRole('button', { name: /^Continue/ })).toBeVisible();
+  await page.getByRole('link', { name: 'Write the essay' }).click();
+  await expect(page.getByRole('checkbox', { name: /Open the document/ })).toBeChecked();
+  await expect(stepList(page).getByText('Guessed 10 min · took 12 min')).toBeVisible();
+  await expect(page.getByRole('checkbox', { name: /Write the intro/ })).not.toBeChecked();
+  expect(errors).toEqual([]);
+});
+
 test.describe('with the AI mock', () => {
   test.beforeEach(async ({ page }) => {
     await page.addInitScript(() => localStorage.setItem('ql.ai.mock', '1'));
@@ -478,7 +602,7 @@ test('Persian: the main quest screens fit at any size with no horizontal scroll'
   await page.getByLabel('تکرار').selectOption('none');
   await page.getByRole('button', { name: 'ذخیرهٔ ماموریت' }).click();
   await expect(page).toHaveURL(/\/$/);
-  await expect(page.getByRole('button', { name: /^ادامه/ })).toBeVisible();
+  await expect(page.getByRole('button', { name: /^شروع/ })).toBeVisible();
   await expectNoHorizontalScroll(page);
 
   await page.getByRole('link', { name: 'نوشتن مقالهٔ تاریخ برای کلاس پنجشنبه' }).click();

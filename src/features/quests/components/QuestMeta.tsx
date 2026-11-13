@@ -22,6 +22,11 @@ export function QuestMeta({ quest, categories, tags, showTags, className }: Ques
   const due = dueText(quest);
   return (
     <div className={cx('flex min-w-0 flex-wrap items-center gap-1.5', className)}>
+      {quest.source === 'distraction' && (
+        <Chip size="sm" icon="timer" title={t('source.distraction_hint')}>
+          {t('source.distraction')}
+        </Chip>
+      )}
       {quest.is_boss && (
         <Chip size="sm" tone="accent" icon="sword">
           {t('boss.chip')}

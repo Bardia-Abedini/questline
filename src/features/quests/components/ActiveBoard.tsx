@@ -4,7 +4,13 @@ import { focusPath } from '@/app/routing';
 import { useSettings } from '@/data';
 import { useFormat } from '@/i18n/useFormat';
 import { Button, buttonClass, Card, EmptyState, Icon, ProgressBar } from '@/ui';
-import { useCategoryMap, useQuestList, useStatusCounts, type QuestWithSteps } from '../hooks';
+import {
+  useCategoryMap,
+  useQuestList,
+  useStartedQuestIds,
+  useStatusCounts,
+  type QuestWithSteps,
+} from '../hooks';
 import { questPath, stepProgress } from './questUtils';
 import { QuestIcon } from './QuestIcon';
 import { QuestMeta } from './QuestMeta';
@@ -21,6 +27,7 @@ export function ActiveBoard() {
   const counts = useStatusCounts();
   const settings = useSettings();
   const categories = useCategoryMap();
+  const started = useStartedQuestIds();
   if (!active || !settings) return null;
 
   const limit = settings.active_limit;
@@ -58,7 +65,13 @@ export function ActiveBoard() {
       ) : (
         <ol className="flex flex-col gap-3">
           {active.map((item, i) => (
-            <ActiveCard key={item.quest.id} item={item} top={i === 0} categories={categories} />
+            <ActiveCard
+              key={item.quest.id}
+              item={item}
+              top={i === 0}
+              started={!!started?.has(item.quest.id)}
+              categories={categories}
+            />
           ))}
         </ol>
       )}
@@ -92,10 +105,13 @@ export function ActiveBoard() {
 function ActiveCard({
   item,
   top,
+  started,
   categories,
 }: {
   item: QuestWithSteps;
   top: boolean;
+  /** Had a focus session: the button says Continue instead of Start. */
+  started: boolean;
   categories: ReturnType<typeof useCategoryMap>;
 }) {
   const { t } = useTranslation('quests');
@@ -109,7 +125,7 @@ function ActiveCard({
     count: total,
   });
   const go = () => navigate(next ? focusPath({ stepId: next.id }) : questPath(quest.id));
-  const label = top ? t('actions.continue') : t('actions.start');
+  const label = started || done > 0 ? t('actions.continue') : t('actions.start');
 
   return (
     <Card

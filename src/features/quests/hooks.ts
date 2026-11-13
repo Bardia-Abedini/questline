@@ -113,3 +113,13 @@ export function useTagMap(): ReadonlyMap<Uuid, Tag> {
   const tags = useTags();
   return useMemo(() => new Map((tags ?? []).map((t) => [t.id, t])), [tags]);
 }
+
+/** Quests that have had at least one focus session ("Continue" rather than "Start"). */
+export function useStartedQuestIds(): ReadonlySet<Uuid> | undefined {
+  return useLiveQuery(async () => {
+    const rows = await db.focus_sessions
+      .filter((s) => s.deleted_at === null && s.kind === 'focus' && s.quest_id !== null)
+      .toArray();
+    return new Set(rows.map((s) => s.quest_id!));
+  }, []);
+}

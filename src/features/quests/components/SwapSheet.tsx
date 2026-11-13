@@ -62,14 +62,18 @@ export function SwapSheet({
                 className="flex min-h-14 w-full items-center gap-3 rounded-lg border border-border bg-surface-2 px-4 py-3 text-start transition-colors hover:border-primary/50 hover:bg-primary-soft disabled:opacity-60"
               >
                 <span className="min-w-0 flex-1">
-                  <span className="block truncate font-bold text-text">{quest.title}</span>
-                  <span className="block text-sm text-muted">
-                    {t('progress.steps', {
-                      done: number(done),
-                      total: number(steps.length),
-                      count: steps.length,
-                    })}
+                  <span className="line-clamp-2 block font-bold break-words text-text">
+                    {quest.title}
                   </span>
+                  {steps.length > 1 && (
+                    <span className="block text-sm text-muted">
+                      {t('progress.steps', {
+                        done: number(done),
+                        total: number(steps.length),
+                        count: steps.length,
+                      })}
+                    </span>
+                  )}
                 </span>
                 <span className="inline-flex shrink-0 items-center gap-1 text-sm font-bold text-primary">
                   <Icon name="archive" size="1.1em" />
