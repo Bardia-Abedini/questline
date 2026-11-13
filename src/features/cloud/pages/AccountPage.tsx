@@ -1,3 +1,4 @@
+import type { TFunction } from 'i18next';
 import { useState, type FormEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
@@ -16,7 +17,7 @@ import {
   Spinner,
 } from '@/ui';
 import { DangerZone, ExportButton } from '../components/DataActions';
-import { useBadgeState } from '../components/SyncBadge';
+import { useBadgeState } from '../components/badgeState';
 import {
   resendConfirmation,
   sendPasswordReset,
@@ -95,7 +96,7 @@ function Unconfigured() {
   );
 }
 
-function errorText(t: (k: string) => string, key: AuthErrorKey) {
+function errorText(t: TFunction<'cloud'>, key: AuthErrorKey) {
   return t(`account.error_${key}`);
 }
 

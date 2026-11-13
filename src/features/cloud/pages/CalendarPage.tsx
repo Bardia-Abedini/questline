@@ -2,7 +2,7 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useSearchParams } from 'react-router';
-import { db, focusBlocksRepo, useProfile, useToday } from '@/data';
+import { db, focusBlocksRepo, useNow, useProfile, useToday } from '@/data';
 import { addDays } from '@/domain/dates';
 import { useFormat } from '@/i18n/useFormat';
 import {
@@ -36,31 +36,33 @@ const DAY_END = '22:00';
 const LENGTHS = [15, 25, 45, 60, 90];
 
 function useDayEvents(day: string, timezone: string, connected: boolean) {
-  const [state, setState] = useState<{ events: DayEvent[]; loading: boolean; failed: boolean }>({
+  const key = `${day}|${timezone}`;
+  const [state, setState] = useState<{ key: string; events: DayEvent[]; failed: boolean }>({
+    key: '',
     events: [],
-    loading: false,
     failed: false,
   });
   useEffect(() => {
-    if (!connected) {
-      setState({ events: [], loading: false, failed: false });
-      return;
-    }
+    if (!connected) return;
     let cancelled = false;
-    setState((s) => ({ ...s, loading: true, failed: false }));
     const from = new Date(zonedTime(day, '00:00', timezone)).toISOString();
     const to = new Date(zonedTime(addDays(day, 1), '00:00', timezone)).toISOString();
     fetchDayEvents(from, to)
-      .then((events) => !cancelled && setState({ events, loading: false, failed: false }))
+      .then((events) => !cancelled && setState({ key, events, failed: false }))
       .catch((e) => {
         handleCalendarError(e);
-        if (!cancelled) setState({ events: [], loading: false, failed: true });
+        if (!cancelled) setState({ key, events: [], failed: true });
       });
     return () => {
       cancelled = true;
     };
-  }, [day, timezone, connected]);
-  return state;
+  }, [day, timezone, connected, key]);
+  const current = connected && state.key === key;
+  return {
+    events: current ? state.events : [],
+    loading: connected && !current,
+    failed: current && state.failed,
+  };
 }
 
 export function CalendarPage() {
@@ -124,7 +126,7 @@ export function CalendarPage() {
     ],
     [google.events, local?.blocks],
   );
-  const now = Date.now();
+  const now = useNow();
   const gaps = freeGaps(busy, window).filter((g) => g.end > now);
   const range = (s: Span) => t('calendar.range', { from: time(s.start), to: time(s.end) });
 

@@ -102,7 +102,7 @@ describe('web push', () => {
     const ok = await crypto.subtle.verify(
       { name: 'ECDSA', hash: 'SHA-256' },
       pair.publicKey,
-      b64urlDecode(m[3]!),
+      b64urlDecode(m[3]!) as BufferSource,
       enc.encode(`${m[1]}.${m[2]}`),
     );
     expect(ok).toBe(true);

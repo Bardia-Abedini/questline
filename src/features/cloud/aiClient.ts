@@ -102,7 +102,7 @@ export function createRealAiClient(status: AiStatus): AiClient {
       call('split', { questTitle, stepTitle, guessMinutes }),
     suggestMeta: ({ title, notes }) => call('suggest_meta', { title, notes }),
     classifyQuick: ({ steps }) =>
-      steps.length === 0 ? Promise.resolve([]) : call('classify', { steps }),
+      steps.length === 0 && status === 'ready' ? Promise.resolve([]) : call('classify', { steps }),
     brainDump: ({ text }) => call('brain_dump', { text }),
     explainPick: ({ questTitle, reasons }) => call('explain', { questTitle, reasons }),
   };
