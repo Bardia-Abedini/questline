@@ -23,6 +23,8 @@ export const TITLES: readonly TitleDef[] = Object.freeze(
 );
 
 export const DEFAULT_TITLE = 'title_newcomer';
+/** Stored in `profile.title_id` when the player chose to show no title (null = default). */
+export const NO_TITLE = 'none';
 
 export function titleById(id: string | null | undefined): TitleDef | undefined {
   return TITLES.find((t) => t.id === id);

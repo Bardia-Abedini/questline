@@ -18,7 +18,15 @@ export type NoteFx =
   | { id: number; kind: 'redeem'; title: string };
 
 export type CelebrationFx =
-  | { id: number; kind: 'level'; level: number; goldGift: number; milestone: boolean }
+  | {
+      id: number;
+      kind: 'level';
+      level: number;
+      /** First level reached in this burst (several level-ups merge into one card). */
+      fromLevel: number;
+      goldGift: number;
+      milestone: boolean;
+    }
   | { id: number; kind: 'boss' };
 
 interface FxState {
@@ -83,6 +91,19 @@ export const fx = {
     return id;
   },
   celebrate(input: CelebrationInput): number {
+    const { celebrations } = useFx.getState();
+    const last = celebrations[celebrations.length - 1];
+    if (input.kind === 'level' && last?.kind === 'level') {
+      const merged = {
+        ...last,
+        level: Math.max(last.level, input.level),
+        fromLevel: Math.min(last.fromLevel, input.fromLevel),
+        goldGift: last.goldGift + input.goldGift,
+        milestone: last.milestone || input.milestone,
+      };
+      useFx.setState({ celebrations: [...celebrations.slice(0, -1), merged] });
+      return last.id;
+    }
     const id = nextId++;
     useFx.setState((s) => ({
       celebrations: [...s.celebrations, { ...input, id } as CelebrationFx],

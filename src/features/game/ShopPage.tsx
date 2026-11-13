@@ -33,17 +33,15 @@ export function ShopPage() {
         value={tab}
         onChange={(v) => setParams({ tab: v }, { replace: true })}
         items={[
-          { value: 'rewards', label: t('shop.tab_rewards'), icon: 'gift', content: <RewardsTab /> },
+          { value: 'rewards', label: t('shop.tab_rewards'), content: <RewardsTab /> },
           {
             value: 'cosmetics',
             label: t('shop.tab_cosmetics'),
-            icon: 'palette',
             content: <CosmeticsTab />,
           },
           {
             value: 'powerups',
             label: t('shop.tab_powerups'),
-            icon: 'potion',
             content: <PowerUpsTab />,
           },
         ]}

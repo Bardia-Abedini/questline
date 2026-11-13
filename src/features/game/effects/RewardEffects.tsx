@@ -116,7 +116,7 @@ function NoteCard({ note }: { note: NoteFx }) {
       art = first ? <Badge def={first} unlocked size={44} /> : null;
       title =
         note.achievementIds.length > 1
-          ? t('effects.achievements_many', { count: note.achievementIds.length })
+          ? t('effects.achievements_many', { count: number(note.achievementIds.length) as never })
           : t('effects.achievement_title');
       body = t('effects.achievement_body', {
         name: note.achievementIds.map((id) => tx(`achievements.${id}.name`)).join(', '),
@@ -224,9 +224,14 @@ function CelebrationCard({ c }: { c: CelebrationFx }) {
   }, [c.id]);
   const titleId = `qg-celebration-${c.id}`;
 
-  const items = c.kind === 'level' ? itemsUnlockedAt(c.level) : [];
-  const titles = c.kind === 'level' ? titlesUnlockedAt(c.level) : [];
-  const grew = c.kind === 'level' && c.milestone && cottageTier(c.level) > cottageTier(c.level - 1);
+  const levels =
+    c.kind === 'level'
+      ? Array.from({ length: c.level - c.fromLevel + 1 }, (_, i) => c.fromLevel + i)
+      : [];
+  const items = levels.flatMap(itemsUnlockedAt);
+  const titles = levels.flatMap(titlesUnlockedAt);
+  const grew =
+    c.kind === 'level' && c.milestone && cottageTier(c.level) > cottageTier(c.fromLevel - 1);
 
   return (
     <div
@@ -309,7 +314,7 @@ export function RewardEffects() {
     feedback(xp > 0 ? 'step' : 'gold', true);
   });
   useAppEvent('level.up', (lu) => {
-    fx.celebrate({ kind: 'level', ...lu });
+    fx.celebrate({ kind: 'level', ...lu, fromLevel: lu.level });
     feedback('level');
   });
   useAppEvent('loot.dropped', (loot) => {

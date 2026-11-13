@@ -3,7 +3,7 @@ import { AvatarSvg } from '@/art/avatar/AvatarSvg';
 import { usePlayerStats } from '@/data';
 import { useFormat } from '@/i18n/useFormat';
 import { Card, Chip, Icon, Page, Tabs } from '@/ui';
-import { titleById } from './catalog/titles';
+import { DEFAULT_TITLE, titleById } from './catalog/titles';
 import { AchievementsPanel } from './home/AchievementsPanel';
 import { AdventurerPanel } from './home/AdventurerPanel';
 import { CottagePanel } from './home/CottagePanel';
@@ -21,7 +21,7 @@ export function HomePage() {
   const [params, setParams] = useSearchParams();
   const raw = params.get('tab');
   const tab: HomeTab = TABS.includes(raw as HomeTab) ? (raw as HomeTab) : 'cottage';
-  const title = titleById(profile?.title_id);
+  const title = titleById(profile?.title_id ?? DEFAULT_TITLE);
   const streak = stats?.streak;
   const level = stats?.level.level ?? 1;
 
@@ -91,19 +91,16 @@ export function HomePage() {
           {
             value: 'cottage',
             label: t('home.tab_cottage'),
-            icon: 'home',
             content: <CottagePanel />,
           },
           {
             value: 'adventurer',
             label: t('home.tab_adventurer'),
-            icon: 'user',
             content: <AdventurerPanel />,
           },
           {
             value: 'achievements',
             label: t('home.tab_achievements'),
-            icon: 'star',
             content: <AchievementsPanel />,
           },
         ]}

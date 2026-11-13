@@ -3,7 +3,7 @@ import { AvatarSvg } from '@/art/avatar/AvatarSvg';
 import { usePlayerStats } from '@/data';
 import { Button, Card, Input, Select, showToast, ToggleChip } from '@/ui';
 import { AVATAR_SLOTS, cosmeticsForSlot, type AvatarSlot } from '../catalog/cosmetics';
-import { availableTitles } from '../catalog/titles';
+import { availableTitles, DEFAULT_TITLE, NO_TITLE } from '../catalog/titles';
 import { equipAvatar, setDisplayName, setTitle } from '../logic/looks';
 import { scheduleRefresh } from '../setup';
 import { ItemPicker } from '../ui/ItemPicker';
@@ -67,10 +67,10 @@ export function AdventurerPanel() {
           <NameForm key={savedName} savedName={savedName} />
           <Select
             label={t('home.title_label')}
-            value={profile?.title_id ?? ''}
-            onChange={(e) => void setTitle(e.target.value || null)}
+            value={profile?.title_id ?? DEFAULT_TITLE}
+            onChange={(e) => void setTitle(e.target.value)}
             options={[
-              { value: '', label: t('home.no_title') },
+              { value: NO_TITLE, label: t('home.no_title') },
               ...availableTitles(level).map((ti) => ({ value: ti.id, label: tx(ti.nameKey) })),
             ]}
           />

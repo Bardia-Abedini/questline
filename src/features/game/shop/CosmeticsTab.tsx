@@ -28,7 +28,7 @@ function Preview({ item }: { item: CosmeticItem }) {
   const { look, room } = useLooks();
   if (item.area === 'avatar') {
     return (
-      <div className="mx-auto rounded-xl bg-primary-soft p-2">
+      <div className="mx-auto w-fit rounded-xl bg-primary-soft p-2">
         <AvatarSvg
           look={{ ...look, [item.slot]: item.id }}
           size={180}
