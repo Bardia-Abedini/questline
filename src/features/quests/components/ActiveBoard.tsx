@@ -140,7 +140,7 @@ function ActiveCard({
           </Button>
         )}
       </div>
-      {next && (
+      {next && !(total === 1 && next.title === quest.title && !next.guess_minutes) && (
         <p className="flex min-w-0 items-start gap-2 text-sm text-muted">
           <QuestIcon name="steps" className="mt-0.5" />
           <span className="min-w-0 break-words">

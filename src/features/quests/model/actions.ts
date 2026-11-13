@@ -629,8 +629,12 @@ export async function saveAsTemplate(questId: Uuid): Promise<QuestTemplate> {
       category_id: quest.category_id,
       tag_ids: quest.tag_ids.slice(),
       // The automatic step named after the quest is not shown as a real step: adding steps
-    // replaces it, and leaving the list empty keeps it (renamed with the quest).
-    steps: (isAutoStep(quest, steps) ? [] : steps).map((s) => ({ title: s.title, guess_minutes: s.guess_minutes, quick: s.quick })),
+      // replaces it, and leaving the list empty keeps it (renamed with the quest).
+      steps: (isAutoStep(quest, steps) ? [] : steps).map((s) => ({
+        title: s.title,
+        guess_minutes: s.guess_minutes,
+        quick: s.quick,
+      })),
     });
   });
 }
