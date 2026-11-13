@@ -8,6 +8,9 @@
  * - Records time away (tab hidden or window unfocused) on the open focus session, and after
  *   the threshold nudges once per away period (sound + notification naming the step).
  *
+ * With several tabs open, one tab owns all of this (see ownership.ts); the others only
+ * report whether the player is looking at them, and play a sound when they are.
+ *
  * Nothing here counts time in memory: timeouts only wake the engine up, and every decision is
  * recomputed from the stored session and `clock.now()`.
  */
@@ -16,6 +19,7 @@ import { usePreferences } from '@/app/preferences/preferences';
 import {
   clock,
   focusSessionsRepo,
+  newId,
   getSingleton,
   sessionToTimerState,
   stepsRepo,
@@ -35,6 +39,13 @@ import {
 } from '../logic/machine';
 import { endSession, getOpenSession, logSessionEvent, markAway, markBack } from '../logic/sessions';
 import { notificationPermission, notify, requestNotificationPermission } from './notify';
+import {
+  anyTabPresent,
+  createOwnership,
+  HEARTBEAT_MS,
+  shouldPlayAlert,
+  type PresenceEntry,
+} from './ownership';
 
 const t = () => i18next.getFixedT(null, 'focus');
 
@@ -86,7 +97,7 @@ function markOffered() {
 interface EngineState {
   session: FocusSession | null;
   settings: Settings | undefined;
-  /** Visible and focused right now. */
+  /** The player is looking at some tab of the app (this one or another). */
   present: boolean;
   /** When the current present stretch began (null: not present). */
   presentSince: number | null;
@@ -94,10 +105,22 @@ interface EngineState {
   nudged: Set<number>;
   endTimer: number | null;
   nudgeTimer: number | null;
+  /** This window lost focus. */
   blurred: boolean;
+  /** This tab owns the writes and alerts (see ownership.ts). */
+  owner: boolean;
+  /** Presence reported by the other tabs. */
+  others: Map<string, PresenceEntry>;
 }
 
+type Message =
+  | { type: 'presence'; tabId: string; present: boolean }
+  | { type: 'chime'; kind: ChimeKind }
+  | { type: 'welcome'; offer: boolean };
+
 let running: (() => void) | null = null;
+let channel: BroadcastChannel | null = null;
+const tabId = newId();
 const engine: EngineState = {
   session: null,
   settings: undefined,
@@ -107,10 +130,54 @@ const engine: EngineState = {
   endTimer: null,
   nudgeTimer: null,
   blurred: false,
+  owner: false,
+  others: new Map(),
 };
 
-function isPresentNow(): boolean {
+/** This tab is visible and focused. */
+function selfPresent(): boolean {
   return document.visibilityState === 'visible' && !engine.blurred;
+}
+
+function post(message: Message) {
+  try {
+    channel?.postMessage(message);
+  } catch {
+    /* channel closed */
+  }
+}
+
+/** Plays a sound in exactly one tab: the one being looked at, else the owner. */
+function alertChime(kind: ChimeKind) {
+  post({ type: 'chime', kind });
+  onChimeMessage(kind);
+}
+
+function onChimeMessage(kind: ChimeKind) {
+  if (
+    shouldPlayAlert({
+      selfPresent: selfPresent(),
+      anyPresent: engine.present,
+      isOwner: engine.owner,
+    })
+  ) {
+    chime(kind);
+  }
+}
+
+function showWelcome(offer: boolean) {
+  if (!selfPresent()) return;
+  const tr = t();
+  showToast({
+    title: tr('welcome_back.title'),
+    description: tr('welcome_back.body'),
+    tone: 'info',
+    icon: 'heart',
+    duration: offer ? 12_000 : 6000,
+    action: offer
+      ? { label: tr('welcome_back.allow'), onClick: () => void requestNotificationPermission() }
+      : undefined,
+  });
 }
 
 function clearTimer(key: 'endTimer' | 'nudgeTimer') {
@@ -118,10 +185,10 @@ function clearTimer(key: 'endTimer' | 'nudgeTimer') {
   engine[key] = null;
 }
 
-/** Ends the open session if its timer has run out. */
+/** Ends the open session if its timer has run out. Owner tab only. */
 async function checkEnd(): Promise<void> {
   const s = engine.session;
-  if (!s) return;
+  if (!s || !engine.owner) return;
   const now = clock.now();
   const state = sessionToTimerState(s);
   const endAt = naturalEndAt(state, now);
@@ -134,7 +201,7 @@ async function checkEnd(): Promise<void> {
   if (!result.changed) return;
   // A timer that ran out long ago (reopened later) ends quietly; one that just ended chimes.
   const fresh = now - endAt < 60_000;
-  if (fresh) chime(s.kind === 'break' ? 'break_end' : 'focus_end');
+  if (fresh) alertChime(s.kind === 'break' ? 'break_end' : 'focus_end');
   if (fresh && !engine.present) {
     const step = s.step_id ? await stepsRepo.get(s.step_id) : undefined;
     const tr = t();
@@ -153,7 +220,7 @@ async function checkEnd(): Promise<void> {
 function scheduleEnd() {
   clearTimer('endTimer');
   const s = engine.session;
-  if (!s) return;
+  if (!s || !engine.owner) return;
   const now = clock.now();
   const state = sessionToTimerState(s);
   const phase = timerPhase(state, now);
@@ -170,12 +237,14 @@ function scheduleEnd() {
 }
 
 async function nudge(sessionId: string, awayStart: number) {
+  if (!engine.owner) return;
   const s = await focusSessionsRepo.get(sessionId);
   if (!s || s.ended_at !== null || s.kind !== 'focus') return;
   const now = clock.now();
   const runningNow = timerPhase(sessionToTimerState(s), now) === 'running';
   const threshold = engine.settings?.away_threshold_seconds ?? 60;
   if (
+    engine.present ||
     !nudgeDue({
       awayStart: openAwayStart(s.away),
       now,
@@ -188,7 +257,7 @@ async function nudge(sessionId: string, awayStart: number) {
   }
   engine.nudged.add(awayStart);
   await logSessionEvent(sessionId, 'left_app');
-  chime('nudge');
+  alertChime('nudge');
   const step = s.step_id ? await stepsRepo.get(s.step_id) : undefined;
   const tr = t();
   notify({
@@ -202,7 +271,7 @@ async function nudge(sessionId: string, awayStart: number) {
 function scheduleNudge() {
   clearTimer('nudgeTimer');
   const s = engine.session;
-  if (!s || s.kind !== 'focus' || engine.present) return;
+  if (!s || !engine.owner || s.kind !== 'focus' || engine.present) return;
   const awayStart = openAwayStart(s.away);
   const threshold = engine.settings?.away_threshold_seconds ?? 60;
   if (awayStart === null || !(threshold > 0) || engine.nudged.has(awayStart)) return;
@@ -219,36 +288,28 @@ function scheduleNudge() {
 
 async function wentAway() {
   const s = engine.session;
-  if (!s || s.kind !== 'focus' || s.ended_at !== null) return;
+  if (!s || !engine.owner || s.kind !== 'focus' || s.ended_at !== null) return;
   await markAway(s.id);
 }
 
 async function cameBack() {
   const s = engine.session;
-  if (!s || s.ended_at !== null) return;
+  if (!s || !engine.owner || s.ended_at !== null) return;
   const awayStart = openAwayStart(s.away);
   if (awayStart === null) return;
   const wasNudged = engine.nudged.has(awayStart);
   const ms = await markBack(s.id);
   if (!wasNudged || ms <= 0) return;
-  // Welcome back, gently. The first time, offer system notifications for next time.
-  const tr = t();
+  // Welcome back, gently, in the tab they came back to. The first time, offer notifications.
   const offer = notificationPermission() === 'default' && !readOffer();
   if (offer) markOffered();
-  showToast({
-    title: tr('welcome_back.title'),
-    description: tr('welcome_back.body'),
-    tone: 'info',
-    icon: 'heart',
-    duration: offer ? 12_000 : 6000,
-    action: offer
-      ? { label: tr('welcome_back.allow'), onClick: () => void requestNotificationPermission() }
-      : undefined,
-  });
+  post({ type: 'welcome', offer });
+  showWelcome(offer);
 }
 
-function onPresenceChange() {
-  const present = isPresentNow();
+/** Recomputes "the player is here" from this tab and the others, and reacts to changes. */
+function updatePresence() {
+  const present = anyTabPresent(engine.others, selfPresent(), clock.now());
   if (present === engine.present) return;
   engine.present = present;
   engine.presentSince = present ? clock.now() : null;
@@ -260,10 +321,15 @@ function onPresenceChange() {
   }
 }
 
+function onOwnPresenceChange() {
+  post({ type: 'presence', tabId, present: selfPresent() });
+  updatePresence();
+}
+
 function onSession(s: FocusSession | null) {
   engine.session = s;
   scheduleEnd();
-  if (!s) {
+  if (!s || !engine.owner) {
     clearTimer('nudgeTimer');
     return;
   }
@@ -277,17 +343,64 @@ function onSession(s: FocusSession | null) {
   // The step disappeared (deleted elsewhere): end quietly, keeping the time.
   if (s.step_id) {
     void stepsRepo.get(s.step_id).then((step) => {
-      if (!step && engine.session?.id === s.id) void endSession(s.id, 'abandoned');
+      if (!step && engine.owner && engine.session?.id === s.id) {
+        void endSession(s.id, 'abandoned');
+      }
     });
   }
+}
+
+/** Whether this tab currently owns the engine (for tests and diagnostics). */
+export function isEngineOwner(): boolean {
+  return engine.owner;
 }
 
 /** Starts the engine once. Returns a cleanup. */
 export function startFocusEngine(): () => void {
   if (running) return running;
   engine.blurred = false;
-  engine.present = isPresentNow();
+  engine.others.clear();
+  engine.present = selfPresent();
   engine.presentSince = engine.present ? clock.now() : null;
+
+  if (typeof BroadcastChannel !== 'undefined') {
+    channel = new BroadcastChannel('ql-focus');
+    channel.onmessage = (e: MessageEvent<Message>) => {
+      const m = e.data;
+      if (m?.type === 'presence') {
+        engine.others.set(m.tabId, { present: m.present, at: clock.now() });
+        updatePresence();
+      } else if (m?.type === 'chime') {
+        onChimeMessage(m.kind);
+      } else if (m?.type === 'welcome') {
+        showWelcome(m.offer);
+      }
+    };
+  }
+
+  let storage: Storage | null = null;
+  try {
+    storage = window.localStorage;
+  } catch {
+    storage = null;
+  }
+  const ownership = createOwnership({
+    tabId,
+    now: () => clock.now(),
+    locks: typeof navigator !== 'undefined' && 'locks' in navigator ? navigator.locks : null,
+    storage,
+    onChange: (owner) => {
+      engine.owner = owner;
+      if (owner) {
+        // Taking over: catch up with whatever happened while another tab was in charge.
+        engine.presentSince = engine.present ? clock.now() : null;
+        onSession(engine.session);
+      } else {
+        clearTimer('endTimer');
+        clearTimer('nudgeTimer');
+      }
+    },
+  });
 
   const subs: Subscription[] = [
     liveQuery(getOpenSession).subscribe({
@@ -304,29 +417,42 @@ export function startFocusEngine(): () => void {
     }),
   ];
 
-  const onVisibility = () => onPresenceChange();
+  // Heartbeat: keeps this tab's presence fresh for the others and drops stale reports.
+  const heartbeat = window.setInterval(() => {
+    post({ type: 'presence', tabId, present: selfPresent() });
+    updatePresence();
+  }, HEARTBEAT_MS);
+  post({ type: 'presence', tabId, present: selfPresent() });
+
   const onBlur = () => {
     engine.blurred = true;
-    onPresenceChange();
+    onOwnPresenceChange();
   };
   const onFocus = () => {
     engine.blurred = false;
-    onPresenceChange();
+    onOwnPresenceChange();
   };
+  const onPageHide = () => post({ type: 'presence', tabId, present: false });
   const onGesture = () => unlockAudio();
-  document.addEventListener('visibilitychange', onVisibility);
+  document.addEventListener('visibilitychange', onOwnPresenceChange);
   window.addEventListener('blur', onBlur);
   window.addEventListener('focus', onFocus);
+  window.addEventListener('pagehide', onPageHide);
   window.addEventListener('pointerdown', onGesture, { capture: true });
   window.addEventListener('keydown', onGesture, { capture: true });
 
   running = () => {
     subs.forEach((s) => s.unsubscribe());
+    ownership.stop();
+    window.clearInterval(heartbeat);
     clearTimer('endTimer');
     clearTimer('nudgeTimer');
-    document.removeEventListener('visibilitychange', onVisibility);
+    channel?.close();
+    channel = null;
+    document.removeEventListener('visibilitychange', onOwnPresenceChange);
     window.removeEventListener('blur', onBlur);
     window.removeEventListener('focus', onFocus);
+    window.removeEventListener('pagehide', onPageHide);
     window.removeEventListener('pointerdown', onGesture, { capture: true });
     window.removeEventListener('keydown', onGesture, { capture: true });
     running = null;
