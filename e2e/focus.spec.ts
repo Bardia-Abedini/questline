@@ -487,7 +487,7 @@ test('started from Today in two taps, "stop for now" after Done returns to Today
   await boot(page);
   await seed(page, ESSAY);
   await page.goto('/');
-  await page.getByRole('button', { name: /^Continue/ }).click();
+  await page.getByRole('button', { name: /^Start/ }).click();
   await expect(page.getByRole('heading', { level: 1, name: 'Open the document' })).toBeVisible();
   await expect(timer(page)).toHaveText(/^(25:00|24:5\d)$/);
   await page.getByRole('button', { name: 'Done', exact: true }).click();
