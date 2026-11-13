@@ -234,13 +234,13 @@ export function TimerView({
       </p>
 
       <div className="flex w-full max-w-sm flex-col gap-3">
-        <div className="grid grid-cols-2 gap-3">
+        <div className="flex flex-wrap gap-3">
           <Button
             size="lg"
             icon="check"
             onClick={() => void done()}
             loading={busy}
-            className="min-w-0"
+            className={SECONDARY_ACTION}
           >
             {t('actions.done')}
           </Button>
@@ -249,7 +249,7 @@ export function TimerView({
             variant="secondary"
             icon={paused ? 'play' : 'pause'}
             onClick={() => void togglePause()}
-            className="min-w-0"
+            className={SECONDARY_ACTION}
           >
             {paused ? t('actions.resume') : t('actions.pause')}
           </Button>

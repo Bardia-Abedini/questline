@@ -433,7 +433,7 @@ test('with two tabs open, time away is recorded once and each alert fires once',
     ...(await other.evaluate(() => window.__notes)),
   ];
   await expect.poll(async () => (await notes()).length).toBe(1);
-  await page.clock.fastForward('25:00');
+  await page.clock.fastForward('23:58');
   await expect
     .poll(async () => (await notes()).map((n) => n.title))
     .toEqual(['Still with your quest?', "Time's up. Nice focus!"]);
