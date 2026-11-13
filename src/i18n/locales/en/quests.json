@@ -1,8 +1,373 @@
 {
   "title": "Quests",
-  "subtitle": "Backlog, inbox, done and archive.",
+  "subtitle": "Everything you might do, waiting calmly until you pick it.",
+  "loading": "Loading…",
+  "tabs": {
+    "label": "Quest lists",
+    "backlog": "Backlog",
+    "inbox": "Inbox",
+    "done": "Done",
+    "archived": "Archive"
+  },
+  "search": {
+    "label": "Search quests",
+    "placeholder": "Search quests"
+  },
+  "filters": {
+    "button": "Filters",
+    "in_use": "in use:",
+    "clear": "Clear filters"
+  },
+  "manage": {
+    "label": "Manage quests"
+  },
   "empty": {
-    "title": "No quests yet",
-    "body": "Every big task can become a quest made of tiny steps. Your quest log will live here."
+    "backlog_title": "Your backlog is clear",
+    "backlog_body": "Add a quest whenever something is on your mind. It will wait here until you are ready.",
+    "inbox_title": "Inbox is empty",
+    "inbox_body": "Press + or Q anytime to catch a thought in one line. It lands here to sort later.",
+    "done_title": "Finished quests gather here",
+    "done_body": "Every step you check off counts. Your first finished quest will show up here.",
+    "archived_title": "Nothing archived",
+    "archived_body": "Quests you set aside rest here. You can bring any of them back.",
+    "filtered_title": "No quests match",
+    "filtered_body": "Try fewer words or clear a filter."
+  },
+  "backlog": {
+    "active_now": "Active now",
+    "waiting": "Waiting in the backlog",
+    "waiting_empty": "Nothing else is waiting."
+  },
+  "inbox": {
+    "hint": "Turn a captured thought into a real quest, or send it straight to the backlog.",
+    "sort": "Sort",
+    "sort_for": "Sort “{{title}}” into a quest",
+    "to_backlog_for": "Move “{{title}}” to the backlog"
+  },
+  "done": {
+    "finished_on": "Finished {{date}}"
+  },
+  "status": {
+    "active": "Active quest",
+    "backlog": "Waiting in your backlog",
+    "inbox": "In your inbox, ready to sort",
+    "done": "Finished",
+    "done_on": "Finished on {{date}}",
+    "archived": "Archived, resting for now"
+  },
+  "actions": {
+    "new_quest": "New quest",
+    "start": "Start",
+    "continue": "Continue",
+    "start_quest": "Start “{{title}}”",
+    "edit": "Edit",
+    "save": "Save",
+    "cancel": "Cancel",
+    "archive": "Archive",
+    "restore": "Restore",
+    "restore_for": "Restore “{{title}}”",
+    "delete": "Delete",
+    "delete_for": "Delete “{{title}}”",
+    "undo": "Undo",
+    "activate": "Add to Active",
+    "to_backlog": "Move to backlog",
+    "save_template": "Save as template"
+  },
+  "priority": {
+    "high": "High priority",
+    "medium": "Medium priority",
+    "low": "Low priority"
+  },
+  "difficulty": {
+    "rank": "Rank {{rank}}"
+  },
+  "due": {
+    "today": "Today",
+    "tomorrow": "Tomorrow",
+    "at_time": "{{day}}, {{time}}",
+    "on": "Due {{when}}",
+    "was": "Was planned for {{when}}"
+  },
+  "progress": {
+    "label": "Progress on {{title}}",
+    "steps_one": "{{done}} of {{total}} step",
+    "steps_other": "{{done}} of {{total}} steps"
+  },
+  "step": {
+    "quick": "Quick"
+  },
+  "board": {
+    "title": "Active quests",
+    "count": "{{active}} of {{limit}}",
+    "up_next": "Up next",
+    "next_step": "Next: {{step}}",
+    "empty_title": "Pick a quest for today",
+    "empty_body": "Add a new quest or choose one from your backlog. Small is perfect.",
+    "pick_backlog": "Pick from backlog",
+    "brain_dump": "Brain dump",
+    "calendar": "Day view",
+    "inbox_one": "{{n}} in inbox",
+    "inbox_other": "{{n}} in inbox"
+  },
+  "form": {
+    "new_title": "New quest",
+    "edit_title": "Edit quest",
+    "sort_title": "Sort into a quest",
+    "subtitle": "Only the name is needed. Everything else can wait.",
+    "title": "Quest name",
+    "title_placeholder": "What do you want to get done?",
+    "title_needed": "Give your quest a name first.",
+    "from_template": "Start from a template",
+    "no_template": "No template",
+    "steps": "Steps",
+    "steps_hint": "Optional. Tiny steps make starting easier.",
+    "add_step": "Add a step",
+    "add_another_step": "Add another step",
+    "add_step_placeholder": "e.g. Open the document",
+    "add_step_button": "Add step",
+    "add": "Add",
+    "new_step_guess": "Minutes for the new step",
+    "minutes_short": "min",
+    "step_label": "Step {{n}}",
+    "step_done_label": "Step {{n}} (done)",
+    "step_guess_label": "Minutes for step {{n}}",
+    "step_quick_label": "Step {{n}} is quick",
+    "quick_hint": "Quick steps can be checked off without a timer.",
+    "move_up": "Move step {{n}} up",
+    "move_down": "Move step {{n}} down",
+    "remove_step": "Remove step {{n}}",
+    "more_details": "More details",
+    "fewer_details": "Fewer details",
+    "notes": "Notes",
+    "priority": "Priority",
+    "difficulty": "Difficulty",
+    "difficulty_hint": "Rank {{rank}} pays {{xp}} XP and {{gold}} gold in total.",
+    "guess": "Time guess (minutes)",
+    "guess_hint": "Your best guess is fine. Comparing it later helps you plan.",
+    "guess_steps_sum": "Your steps add up to {{minutes}}.",
+    "due": "When is it due?",
+    "due_date": "Date",
+    "due_time": "Time (optional)",
+    "clear_due": "No due date",
+    "category": "Category",
+    "no_category": "None",
+    "manage_categories": "Edit categories",
+    "tags": "Tags",
+    "new_tag": "New tag",
+    "new_tag_placeholder": "Add a tag",
+    "add_tag": "Add tag",
+    "repeat": "Repeat",
+    "activate": "Put it on Today",
+    "activate_hint": "{{active}} of {{limit}} active quests in use.",
+    "activate_full": "Your {{limit}} active spots are taken, so it will wait in the backlog.",
+    "save": "Save quest",
+    "save_sorted": "Save as quest"
+  },
+  "first_step": {
+    "hint": "Starting is easiest with a first step under 5 minutes. This one is about {{minutes}}. Want to make it smaller?",
+    "shrink": "Shrink it for me",
+    "add_tiny": "Add a tiny first step"
+  },
+  "estimate": {
+    "suggestion": "You usually take about {{ratio}}× your guess. Use {{minutes}} instead?",
+    "use": "Use {{minutes}}",
+    "keep": "Keep mine",
+    "guess_vs_actual": "Guessed {{guess}} · took {{actual}}",
+    "guess_only": "Guessed {{guess}}",
+    "actual_only": "Took {{actual}}"
+  },
+  "recurrence": {
+    "none": "Does not repeat",
+    "daily": "Every day",
+    "weekly": "Every week",
+    "weekdays": "On chosen days",
+    "every_n_days": "Every few days",
+    "on_days": "Which days?",
+    "pick_a_day": "Pick at least one day.",
+    "every_n_label": "Every how many days?",
+    "every_n_min": "2 or more.",
+    "every_n_preview_one": "Repeats every {{n}} day.",
+    "every_n_preview_other": "Repeats every {{n}} days.",
+    "hint": "The next one appears when you finish this one. Missed days never pile up.",
+    "repeats": "Repeats",
+    "summary_daily": "Repeats every day",
+    "summary_weekly": "Repeats every week",
+    "summary_weekdays": "Repeats on chosen days",
+    "summary_every_n_days_one": "Repeats every {{n}} day",
+    "summary_every_n_days_other": "Repeats every {{n}} days"
+  },
+  "ai": {
+    "break_down": "Break it down for me",
+    "try_again": "Try again",
+    "thinking": "Thinking of small steps…",
+    "plan_ready": "Here is a plan. Rename, reorder or remove anything before you save.",
+    "undo_plan": "Undo the plan",
+    "meta_note": "Priority, difficulty and time were suggested for you. Change anything you like.",
+    "unavailable": {
+      "guest": "AI helpers need an account.",
+      "unconfigured": "AI helpers are not set up yet.",
+      "offline": "AI helpers need a connection.",
+      "limit_reached": "AI helpers are resting until tomorrow.",
+      "failed": "That did not work this time.",
+      "fallback": "You can keep going on your own; everything else works."
+    }
+  },
+  "stuck": {
+    "button": "I'm stuck",
+    "button_for": "I'm stuck on “{{step}}”",
+    "title": "Let's make it smaller",
+    "body": "Smaller pieces for “{{step}}”:",
+    "use": "Use these steps"
+  },
+  "no_timer": {
+    "title": "This one looks like it needs focus time",
+    "body": "Did you really finish “{{step}}”?",
+    "note": "Either answer is fine. You get the full reward when you say it is done.",
+    "confirm": "Yes, I did it",
+    "start_timer": "Start timer"
+  },
+  "detail": {
+    "loading": "Loading quest",
+    "missing_title": "This quest is not here",
+    "missing_body": "It may have been deleted. Your other quests are safe.",
+    "back_to_quests": "Back to quests",
+    "next_step": "Next step",
+    "steps": "Steps",
+    "step_number": "Step {{n}}:",
+    "start_step": "Start focus on “{{step}}”",
+    "more": "More",
+    "limit_note": "You can have up to {{limit}} active quests at once."
+  },
+  "boss": {
+    "chip": "Boss",
+    "title": "Boss quest",
+    "health": "Boss health",
+    "health_value": "{{current}} of {{max}} health left",
+    "defeated": "Defeated!",
+    "offer_rank": "An S-rank quest can become a boss: every step you finish damages it, and beating it pays {{bonus}} extra.",
+    "offer_waiting": "This quest has been waiting a while. Turn it into a boss? Every step damages it, and beating it pays {{bonus}} extra.",
+    "turn_into": "Turn into a boss",
+    "became": "A boss appears! Every step you finish will hit it."
+  },
+  "swap": {
+    "title": "Your active list is full",
+    "body": "You have {{limit}} active quests. Pick one to rest in the backlog so “{{title}}” can take its place. Its progress stays.",
+    "rest": "Swap",
+    "swap_for": "Send “{{title}}” to the backlog and swap"
+  },
+  "capture": {
+    "open": "Quick capture",
+    "title": "Quick capture",
+    "body": "One line is enough. It goes to your Inbox to sort later.",
+    "label": "What is on your mind?",
+    "placeholder": "What is on your mind?",
+    "save": "Save to Inbox",
+    "saved": "Saved to your Inbox"
+  },
+  "overdue": {
+    "title": "Can this still be done?",
+    "body": "“{{title}}” had a date that has passed.",
+    "note": "Either way is fine. If it no longer fits, it can rest in the archive.",
+    "yes": "Yes, keep it",
+    "no": "No, archive it",
+    "pick_date": "Pick a new date",
+    "new_date": "New date",
+    "archived": "“{{title}}” is resting in the archive"
+  },
+  "toast": {
+    "saved": "Saved",
+    "saved_named": "“{{title}}” saved",
+    "saved_active": "It is on your Today board.",
+    "saved_backlog": "It is waiting in your backlog.",
+    "activated": "“{{title}}” is on your Today board",
+    "to_backlog": "“{{title}}” moved to the backlog",
+    "archived": "“{{title}}” archived",
+    "deleted": "“{{title}}” deleted",
+    "template_saved": "Template saved from “{{title}}”",
+    "quest_done": "Quest complete: {{title}}",
+    "quest_done_reward": "+{{xp}} XP and +{{gold}} gold. Well played!"
+  },
+  "templates": {
+    "title": "Templates",
+    "subtitle": "Quests you do again and again, ready with their steps.",
+    "empty_title": "No templates yet",
+    "empty_body": "Open any quest and choose “Save as template” to reuse it.",
+    "steps_one": "{{n}} step",
+    "steps_other": "{{n}} steps",
+    "use": "Use",
+    "use_for": "New quest from “{{title}}”",
+    "delete_for": "Delete template “{{title}}”",
+    "deleted": "Template “{{title}}” deleted",
+    "view": "View"
+  },
+  "categories": {
+    "title": "Categories and tags",
+    "subtitle": "Colors and icons that help you spot quests at a glance.",
+    "heading": "Categories",
+    "new": "New category",
+    "edit": "Edit category",
+    "edit_for": "Edit {{name}}",
+    "delete_for": "Delete {{name}}",
+    "delete_title": "Delete {{name}}?",
+    "delete_body": "Its quests stay, just without a category.",
+    "name": "Name",
+    "color": "Color",
+    "icon": "Icon",
+    "untitled": "Untitled",
+    "defaults": {
+      "school": "School",
+      "home": "Home",
+      "personal": "Personal"
+    }
+  },
+  "tags": {
+    "heading": "Tags",
+    "hint": "Add tags from the quest form. Rename or remove them here.",
+    "empty_title": "No tags yet",
+    "empty_body": "Tags you add to quests will show up here.",
+    "rename": "Rename tag",
+    "rename_for": "Rename #{{name}}",
+    "delete_for": "Delete #{{name}}",
+    "deleted": "#{{name}} removed",
+    "name": "Tag name"
+  },
+  "colors": {
+    "sky": "Sky",
+    "sage": "Sage",
+    "rose": "Rose",
+    "honey": "Honey",
+    "lavender": "Lavender",
+    "clay": "Clay",
+    "teal": "Teal",
+    "slate": "Slate"
+  },
+  "icons": {
+    "book": "Book",
+    "home": "House",
+    "heart": "Heart",
+    "leaf": "Leaf",
+    "star": "Star",
+    "sword": "Sword",
+    "music": "Music",
+    "palette": "Palette",
+    "coin": "Coin",
+    "gift": "Gift",
+    "bolt": "Bolt",
+    "sun": "Sun",
+    "moon": "Moon",
+    "globe": "Globe",
+    "feather": "Feather",
+    "lantern": "Lantern",
+    "user": "Person",
+    "potion": "Potion"
+  },
+  "settings": {
+    "title": "Quests",
+    "active_limit": "Active quests at once",
+    "active_limit_hint": "A short list keeps today clear. Starting another one asks you to swap."
+  },
+  "source": {
+    "distraction": "From a focus session",
+    "distraction_hint": "Parked with “I got distracted” while you were focusing."
   }
 }
