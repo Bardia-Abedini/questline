@@ -154,7 +154,7 @@ export function CosmeticsTab() {
                     has ? 'text-success' : locked ? 'text-muted' : 'text-gold-text',
                   )}
                 >
-                  <Icon name={has ? 'check' : locked ? 'star' : 'coin'} size={14} />
+                  <Icon name={has ? 'check' : locked ? 'lock' : 'coin'} size={14} />
                   {has
                     ? isEquipped(item.id, look, room)
                       ? t('shop.equipped')

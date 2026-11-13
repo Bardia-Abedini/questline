@@ -160,17 +160,24 @@ export const hairBraids: AvatarItemArt = {
   ),
 };
 
-/** A high ponytail swinging out to one side. */
+/** A high ponytail gathered at the back of the head and swinging out to one side. */
 export const hairPonytail: AvatarItemArt = {
   back: ({ hair }: AvatarArtProps) => (
     <g>
       <path
-        d="M74 30 C95 25 109 44 103 68 C101 78 96 84 91 87 C93 72 91 56 78 46 Z"
-        fill={hair.shade}
+        d="M80 27 C99 23 110 40 106 62 C104 74 98 82 91 86 C94 71 93 56 84 45 C82 40 80 34 80 27 Z"
+        fill={hair.base}
         {...inkAvatar}
       />
       <path
-        d="M97 40 Q102 50 100 62"
+        d="M90 36 C99 42 102 54 99 68"
+        fill="none"
+        stroke={hair.shade}
+        strokeWidth="2"
+        strokeLinecap="round"
+      />
+      <path
+        d="M95 31 Q102 36 103 46"
         fill="none"
         stroke={hair.light}
         strokeWidth="2"
@@ -185,15 +192,24 @@ export const hairPonytail: AvatarItemArt = {
         fill={hair.base}
         {...inkAvatar}
       />
+      <path
+        d="M62 26 C70 27 76 29 80 33"
+        fill="none"
+        stroke={hair.shade}
+        strokeWidth="1.8"
+        strokeLinecap="round"
+      />
+      <ellipse cx="81" cy="30" rx="6.5" ry="5.5" fill={hair.base} {...inkAvatar} />
       <rect
-        x="71"
-        y="28"
-        width="11"
-        height="5.5"
+        x="80"
+        y="24.5"
+        width="5.5"
+        height="11"
         rx="2.7"
         fill={PALETTE.berry}
         {...inkAvatar}
-        transform="rotate(-28 76.5 31)"
+        strokeWidth="1.5"
+        transform="rotate(-30 82.75 30)"
       />
       <Shine d="M44 33 Q50 28.5 57 28.5" />
     </g>

@@ -714,30 +714,48 @@ export function WindowGoldfishBowl() {
   );
 }
 
-/** A clay stand holding a few umbrellas. */
+/** A stand with two closed umbrellas, curved handles up (as they rest in a real stand). */
 export function CornerUmbrellaStand() {
+  const handle = (d: string, color: string) => (
+    <g>
+      <path d={d} fill="none" stroke={INK} strokeWidth="5" strokeLinecap="round" />
+      <path d={d} fill="none" stroke={color} strokeWidth="2.6" strokeLinecap="round" />
+    </g>
+  );
   return (
     <g>
-      <path d="M12 62 C10 40 12 24 15 8 C20 24 22 42 22 62 Z" fill={PALETTE.berry} {...inkRoom} />
-      <path d="M12 30 L22 30" stroke={PALETTE.berryShade} strokeWidth="2" strokeLinecap="round" />
-      <path d="M26 64 C26 46 28 30 32 14 C37 30 38 48 36 64 Z" fill={PALETTE.denim} {...inkRoom} />
-      <path d="M27 36 L37 36" stroke={PALETTE.denimShade} strokeWidth="2" strokeLinecap="round" />
+      {/* tall blue umbrella with a crook handle */}
+      {handle('M28 30 L28 16 C28 6 38 6 38 13', PALETTE.wood)}
       <path
-        d="M38 66 L38 28 C38 18 30 18 30 24"
-        fill="none"
-        stroke={INK}
-        strokeWidth="5"
-        strokeLinecap="round"
+        d="M28 26 C35 32 36 48 32 62 L24 62 C20 48 21 32 28 26 Z"
+        fill={PALETTE.denim}
+        {...inkRoom}
       />
+      <path d="M28 30 L27 62 M31 36 L30 62" stroke={PALETTE.denimShade} strokeWidth="1" />
+      <rect
+        x="22.5"
+        y="42"
+        width="11"
+        height="4"
+        rx="2"
+        fill={PALETTE.honey}
+        {...inkRoom}
+        strokeWidth="1"
+      />
+      {/* shorter berry umbrella with a hooked handle */}
+      {handle('M15 40 L15 28 C15 20 7 20 7 26', PALETTE.honey)}
       <path
-        d="M38 66 L38 28 C38 18 30 18 30 24"
-        fill="none"
-        stroke={PALETTE.honey}
-        strokeWidth="2.6"
-        strokeLinecap="round"
+        d="M15 36 C21 41 22 52 19 62 L11 62 C8 52 9 41 15 36 Z"
+        fill={PALETTE.berry}
+        {...inkRoom}
       />
-      <path d="M8 94 L6 60 L38 60 L36 94 Z" fill={PALETTE.teal} {...inkRoom} />
-      <rect x="4" y="56" width="36" height="8" rx="3" fill={PALETTE.tealShade} {...inkRoom} />
+      <path d="M15 40 L14 62 M18 44 L17 62" stroke={PALETTE.berryShade} strokeWidth="1" />
+      <circle cx="12" cy="49" r="1.2" fill={PALETTE.cream} />
+      <circle cx="17" cy="54" r="1.2" fill={PALETTE.cream} />
+      {/* the stand */}
+      <path d="M7 94 L5 60 L39 60 L37 94 Z" fill={PALETTE.teal} {...inkRoom} />
+      <rect x="3" y="56" width="38" height="8" rx="3" fill={PALETTE.tealShade} {...inkRoom} />
+      <path d="M6 78 L38 78" stroke={PALETTE.tealShade} strokeWidth="2" />
       <path d="M11 68 L12 86" {...shine} />
     </g>
   );

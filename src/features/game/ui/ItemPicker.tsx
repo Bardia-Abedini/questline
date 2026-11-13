@@ -95,7 +95,7 @@ export function ItemPicker({
               </span>
               <span className="line-clamp-2 leading-tight">{name}</span>
               <span className="inline-flex items-center gap-1 text-xs">
-                <Icon name={locked ? 'star' : 'shop'} size={12} />
+                <Icon name={locked ? 'lock' : 'shop'} size={12} />
                 {locked
                   ? t('avatar.locked', { level: number(item.unlockLevel) })
                   : t('avatar.get_in_shop')}

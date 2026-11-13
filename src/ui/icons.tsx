@@ -152,6 +152,12 @@ export const ICONS = {
       <path d="M5 8.5V19a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8.5M10 12.5h4" />
     </>
   ),
+  lock: (
+    <>
+      <rect x="5.5" y="10.5" width="13" height="9.5" rx="2.5" />
+      <path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5M12 14.5v2" />
+    </>
+  ),
   user: (
     <>
       <circle cx="12" cy="8.5" r="3.5" />
