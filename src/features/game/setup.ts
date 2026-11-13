@@ -8,7 +8,7 @@ import { configureRewards, events, type AppEventName } from '@/services';
 import { rareItemIds } from './catalog/cosmetics';
 import { checkAchievements } from './logic/achievements';
 import { countInboxSorted, ensureDailyQuests, evaluateDailyQuests } from './logic/dailyQuests';
-import { applyPendingPotion } from './logic/powerUps';
+import { applyPendingPotion, topUpPotionFocus, topUpPotionStep } from './logic/powerUps';
 import { installTestHooks } from './testHooks';
 
 let queue: Promise<unknown> = Promise.resolve();
@@ -58,8 +58,28 @@ export function setup(): (() => void) | void {
     events.on('inbox.sorted', () => {
       void enqueue(() => countInboxSorted()).then(() => scheduleRefresh());
     }),
+    // Started in the same tick as the event (not queued), so this write transaction is
+    // created before any step completion the player can trigger in the new session;
+    // IndexedDB runs overlapping read-write transactions in creation order.
     events.on('session.started', ({ sessionId, kind }) => {
-      if (kind === 'focus') void enqueue(() => applyPendingPotion(sessionId));
+      if (kind !== 'focus') return;
+      applyPendingPotion(sessionId).catch((e: unknown) => console.warn('[game] potion', e));
+    }),
+    // Safety net if a reward was still paid before the flag landed: top up the missing XP.
+    events.on('step.completed', ({ stepId, sessionId, grant }) => {
+      const reward = grant.events.find((e) => e.kind === 'step_reward');
+      if (!sessionId || !reward) return;
+      void enqueue(() =>
+        topUpPotionStep({
+          stepId,
+          sessionId,
+          stepRewardXp: reward.xp,
+          alreadyDoubled: !!reward.meta?.double_xp,
+        }),
+      );
+    }),
+    events.on('session.ended', ({ sessionId, kind }) => {
+      if (kind === 'focus') void enqueue(() => topUpPotionFocus(sessionId));
     }),
   );
   installTestHooks();

@@ -20,7 +20,7 @@ import {
   type Uuid,
 } from '@/data';
 import { anyLuckyCharmActive, luckyCharmEndsAt } from '@/domain/loot';
-import { events } from '@/services';
+import { events, grantReward } from '@/services';
 
 const alive = <T extends { deleted_at: string | null }>(rows: T[]) =>
   rows.filter((r) => r.deleted_at === null);
@@ -126,4 +126,50 @@ export async function applyPendingPotion(sessionId: Uuid): Promise<boolean> {
     await focusSessionsRepo.update(sessionId, { double_xp: true });
     return true;
   });
+}
+
+/** The potion activation that doubles this session, if any. */
+async function potionFor(sessionId: Uuid): Promise<PowerUpActivation | undefined> {
+  return (await activations('double_xp_potion')).find((a) => a.target_id === sessionId);
+}
+
+/**
+ * Safety net: a step finished in a doubled session whose reward was paid before the flag
+ * reached the session gets the missing XP as a one-time top-up (dedupe `potion:step:<id>`).
+ */
+export async function topUpPotionStep(input: {
+  stepId: Uuid;
+  sessionId: Uuid | null;
+  stepRewardXp: number;
+  alreadyDoubled: boolean;
+}): Promise<boolean> {
+  if (!input.sessionId || input.alreadyDoubled || input.stepRewardXp <= 0) return false;
+  if (!(await potionFor(input.sessionId))) return false;
+  const grant = await grantReward({
+    kind: 'fixed',
+    ledgerKind: 'adjustment',
+    sourceType: 'step',
+    sourceId: input.stepId,
+    dedupeKey: `potion:step:${input.stepId}`,
+    reward: { xp: input.stepRewardXp, gold: 0 },
+    meta: { double_xp: true, potion_top_up: true, session_id: input.sessionId },
+  });
+  return !grant.alreadyGranted;
+}
+
+/** Same safety net for the focus bonus of a doubled session (dedupe `potion:focus:<id>`). */
+export async function topUpPotionFocus(sessionId: Uuid): Promise<boolean> {
+  if (!(await potionFor(sessionId))) return false;
+  const bonus = await db.ledger_events.where('dedupe_key').equals(`focus:${sessionId}`).first();
+  if (!bonus || bonus.deleted_at || bonus.xp <= 0 || bonus.meta?.double_xp) return false;
+  const grant = await grantReward({
+    kind: 'fixed',
+    ledgerKind: 'adjustment',
+    sourceType: 'focus_session',
+    sourceId: sessionId,
+    dedupeKey: `potion:focus:${sessionId}`,
+    reward: { xp: bonus.xp, gold: 0 },
+    meta: { double_xp: true, potion_top_up: true },
+  });
+  return !grant.alreadyGranted;
 }
