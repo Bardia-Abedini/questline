@@ -24,7 +24,7 @@ import {
 import { addDays, localDateTimeToMs, toLocalDate } from '@/domain/dates';
 import { createRng, type Rng } from '@/domain/rng';
 import { events, grantReward, REWARD_TABLES } from '@/services';
-import { usePowerUp } from './powerUps';
+import { spendPowerUp } from './powerUps';
 
 const alive = <T extends { deleted_at: string | null }>(rows: T[]) =>
   rows.filter((r) => r.deleted_at === null);
@@ -155,7 +155,7 @@ export async function rerollDaily(
   const next = rerollDailyQuest(defs, index, rng)[index]!;
   if (next.key === row.quest_key) throw new RangeError('Nothing else to swap in');
   let updated = row;
-  await usePowerUp('daily_reroll', { type: 'daily_quest', id: row.id }, async () => {
+  await spendPowerUp('daily_reroll', { type: 'daily_quest', id: row.id }, async () => {
     updated = await dailyQuestsRepo.update(row.id, {
       quest_key: next.key,
       kind: next.kind,

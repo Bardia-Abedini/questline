@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { AvatarSvg } from '@/art/avatar/AvatarSvg';
 import { usePlayerStats } from '@/data';
 import { Button, Card, Input, Select, showToast, ToggleChip } from '@/ui';
@@ -11,6 +11,34 @@ import { useGameT, useLooks, useOwnedCosmetics } from '../ui/hooks';
 
 const OPTIONAL: AvatarSlot[] = ['hat', 'accessory'];
 
+function NameForm({ savedName }: { savedName: string }) {
+  const { t } = useGameT();
+  const [name, setName] = useState(savedName);
+  return (
+    <form
+      className="flex flex-wrap items-end gap-2"
+      onSubmit={(e) => {
+        e.preventDefault();
+        void setDisplayName(name).then(() =>
+          showToast({ title: t('avatar.name_saved'), tone: 'success' }),
+        );
+      }}
+    >
+      <Input
+        label={t('avatar.name_label')}
+        value={name}
+        maxLength={40}
+        placeholder={t('home.name_placeholder')}
+        onChange={(e) => setName(e.target.value)}
+        wrapperClassName="min-w-0 flex-1"
+      />
+      <Button type="submit" variant="secondary" disabled={name.trim() === savedName}>
+        {t('avatar.save_name')}
+      </Button>
+    </form>
+  );
+}
+
 /** The avatar editor: name, title and one slot at a time. */
 export function AdventurerPanel() {
   const { t, tx } = useGameT();
@@ -18,9 +46,7 @@ export function AdventurerPanel() {
   const owned = useOwnedCosmetics() ?? new Set<string>();
   const level = usePlayerStats()?.level.level ?? 1;
   const [slot, setSlot] = useState<AvatarSlot>('hair');
-  const [name, setName] = useState('');
   const savedName = profile?.display_name ?? '';
-  useEffect(() => setName(savedName), [savedName]);
 
   const pick = async (id: string | null) => {
     try {
@@ -38,27 +64,7 @@ export function AdventurerPanel() {
           <AvatarSvg look={look} size={160} title={t('avatar.editor_title')} />
         </div>
         <div className="flex min-w-0 flex-1 flex-col gap-3">
-          <form
-            className="flex flex-wrap items-end gap-2"
-            onSubmit={(e) => {
-              e.preventDefault();
-              void setDisplayName(name).then(() =>
-                showToast({ title: t('avatar.name_saved'), tone: 'success' }),
-              );
-            }}
-          >
-            <Input
-              label={t('avatar.name_label')}
-              value={name}
-              maxLength={40}
-              placeholder={t('home.name_placeholder')}
-              onChange={(e) => setName(e.target.value)}
-              wrapperClassName="min-w-0 flex-1"
-            />
-            <Button type="submit" variant="secondary" disabled={name.trim() === savedName}>
-              {t('avatar.save_name')}
-            </Button>
-          </form>
+          <NameForm key={savedName} savedName={savedName} />
           <Select
             label={t('home.title_label')}
             value={profile?.title_id ?? ''}

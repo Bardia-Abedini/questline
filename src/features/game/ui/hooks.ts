@@ -1,7 +1,7 @@
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import { db, useProfile } from '@/data';
+import { db, usePlayerStats, useProfile } from '@/data';
 import { STARTER_IDS } from '../catalog/cosmetics';
 import { lookFromProfile, resolveRoom } from '../logic/looks';
 
@@ -38,4 +38,9 @@ export function useLooks() {
     look: lookFromProfile(profile?.avatar),
     room: resolveRoom(profile?.cottage),
   };
+}
+
+/** Current gold, live. */
+export function useGold(): number {
+  return usePlayerStats()?.gold ?? 0;
 }

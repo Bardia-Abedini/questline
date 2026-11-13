@@ -74,7 +74,7 @@ const TABLES = ['inventory', 'power_up_activations', 'focus_sessions', 'daily_qu
  * Uses one unit: marks it used and writes the activation. `target` is the daily quest for a
  * reroll; for a potion it is filled in here (open session) or later (next session).
  */
-export async function usePowerUp(
+export async function spendPowerUp(
   type: PowerUpType,
   target: { type: PowerUpActivation['target_type']; id: string | null } = { type: null, id: null },
   inner?: () => Promise<void>,
@@ -99,7 +99,7 @@ export async function usePowerUp(
 
 export async function activateLuckyCharm(): Promise<PowerUpActivation> {
   if ((await luckyCharmActiveUntil()) !== null) throw new RangeError('A charm is already working');
-  return usePowerUp('lucky_charm');
+  return spendPowerUp('lucky_charm');
 }
 
 /** Drinks a potion: doubles the open focus session now, or the next one. */
@@ -110,7 +110,7 @@ export async function drinkDoubleXpPotion(): Promise<{ appliedNow: boolean }> {
     const session = await focusSessionsRepo.get(sessionId);
     if (session?.double_xp) throw new RangeError('This session is already doubled');
   }
-  await usePowerUp('double_xp_potion', { type: 'focus_session', id: sessionId }, async () => {
+  await spendPowerUp('double_xp_potion', { type: 'focus_session', id: sessionId }, async () => {
     if (sessionId) await focusSessionsRepo.update(sessionId, { double_xp: true });
   });
   return { appliedNow: sessionId !== null };
