@@ -147,7 +147,7 @@
     "difficulty": "سختی",
     "guess": "حدس زمان (دقیقه)",
     "steps": "قدم‌ها",
-    "step": "قدم {{n}} · {{minutes}} دقیقه",
+    "step": "قدم {{n}} (حدود {{minutes}} دقیقه)",
     "remove_step": "حذف قدم «{{title}}»",
     "save_one": "ذخیرهٔ {{n}} ماموریت",
     "save_other": "ذخیرهٔ {{n}} ماموریت",
