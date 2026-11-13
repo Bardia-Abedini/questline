@@ -29,7 +29,7 @@ declare global {
 }
 
 async function boot(page: Page, lang: 'en' | 'fa' = 'en') {
-  await page.addInitScript((lang) => {
+  await page.context().addInitScript((lang) => {
     localStorage.setItem('ql.focus.e2e', '1');
     if (lang === 'fa' && !sessionStorage.getItem('ql.fa')) {
       sessionStorage.setItem('ql.fa', '1');
@@ -381,4 +381,117 @@ test('Persian: focus mode, time up and history, with no horizontal scroll', asyn
   await expect(page.getByRole('heading', { level: 1, name: 'تاریخچهٔ تمرکز' })).toBeVisible();
   await expect(page.getByTestId('history-item')).toContainText('باز کردن فایل');
   await expectNoHorizontalScroll(page);
+});
+
+test('quick capture in focus mode lands in the Inbox and leaves the timer alone', async ({
+  page,
+}) => {
+  await boot(page);
+  const { stepIds } = await seed(page, ESSAY);
+  await startFocus(page, stepIds[0]!);
+  const before = (await page.evaluate(() => window.__qlFocus.sessions()))[0]!;
+  await page.getByRole('button', { name: 'Quick capture' }).click();
+  const sheet = page.getByRole('dialog', { name: 'Quick capture' });
+  await sheet.getByRole('textbox').fill('Buy stamps');
+  await sheet.getByRole('button', { name: 'Save to Inbox' }).click();
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+  await expect(page.getByText('Saved to your Inbox')).toBeVisible();
+  await expect(timer(page)).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Pause' })).toBeVisible();
+  const inbox = await page.evaluate(() => window.__qlFocus.inbox());
+  expect(inbox.map((q) => q.title)).toEqual(['Buy stamps']);
+  const after = await page.evaluate(() => window.__qlFocus.sessions());
+  expect(after).toHaveLength(1);
+  expect(after[0]).toMatchObject({
+    id: before.id,
+    ended_at: null,
+    pauses: [],
+    distractions: [],
+    planned_ms: before.planned_ms,
+  });
+  // The Q shortcut opens it too.
+  await page.locator('h1').click();
+  await page.keyboard.press('q');
+  await expect(page.getByRole('dialog', { name: 'Quick capture' })).toBeVisible();
+});
+
+test('with two tabs open, time away is recorded once and each alert fires once', async ({
+  page,
+  context,
+}) => {
+  await boot(page);
+  const { stepIds } = await seed(page, ESSAY);
+  await startFocus(page, stepIds[0]!);
+  const other = await context.newPage();
+  await other.goto('/focus-history');
+  await other.waitForFunction(() => !!window.__qlFocus);
+  await setHidden(other, true);
+  await setHidden(page, true);
+  await page.clock.fastForward('01:05');
+  const notes = async () => [
+    ...(await page.evaluate(() => window.__notes)),
+    ...(await other.evaluate(() => window.__notes)),
+  ];
+  await expect.poll(async () => (await notes()).length).toBe(1);
+  await page.clock.fastForward('23:58');
+  await expect
+    .poll(async () => (await notes()).map((n) => n.title))
+    .toEqual(['Still with your quest?', "Time's up. Nice focus!"]);
+  const [s] = await page.evaluate(() => window.__qlFocus.sessions());
+  expect(s).toMatchObject({ end_reason: 'ended_while_away', focused_ms: 25 * 60_000 });
+  expect(s!.distractions).toHaveLength(1);
+  expect(s!.away as unknown[]).toHaveLength(1);
+});
+
+test('leaving focus mode never traps: shell pages and reloads stay put', async ({
+  page,
+  context,
+}) => {
+  await boot(page);
+  const { stepIds } = await seed(page, ESSAY);
+  await startFocus(page, stepIds[0]!);
+  await page.getByRole('button', { name: /Leave focus mode/ }).click();
+  await expect(page).toHaveURL(/\/$/);
+  await page
+    .getByRole('navigation', { name: 'Main' })
+    .getByRole('link', { name: 'Quests', exact: true })
+    .click();
+  await expect(page).toHaveURL(/\/quests$/);
+  await page.reload();
+  await expect(page.getByTestId('focus-banner')).toBeVisible();
+  await expect(page).toHaveURL(/\/quests$/);
+  await page.goto('/');
+  await expect(page.getByTestId('focus-banner')).toBeVisible();
+  await expect(page).toHaveURL(/\/$/);
+  // Only the banner invites them back; a new tab is a fresh app open and is brought back.
+  const fresh = await context.newPage();
+  await fresh.goto('/');
+  await expect(fresh).toHaveURL(/\/focus\/[0-9a-f-]{36}$/);
+});
+
+test('after Done, "stop for now" returns to the quest page it started from', async ({ page }) => {
+  await boot(page);
+  const { questId } = await seed(page, ESSAY);
+  await page.goto(`/quests/${questId}`);
+  await page.getByRole('button', { name: 'Start focus on “Open the document”' }).click();
+  await expect(timer(page)).toBeVisible();
+  await page.getByRole('button', { name: 'Done', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Step done!' })).toBeVisible();
+  await page.getByRole('button', { name: 'Stop for now' }).click();
+  await expect(page).toHaveURL(new RegExp(`/quests/${questId}$`));
+});
+
+test('started from Today in two taps, "stop for now" after Done returns to Today', async ({
+  page,
+}) => {
+  await boot(page);
+  await seed(page, ESSAY);
+  await page.goto('/');
+  await page.getByRole('button', { name: /^Continue/ }).click();
+  await expect(page.getByRole('heading', { level: 1, name: 'Open the document' })).toBeVisible();
+  await expect(timer(page)).toHaveText(/^(25:00|24:5\d)$/);
+  await page.getByRole('button', { name: 'Done', exact: true }).click();
+  await page.getByRole('button', { name: 'Stop for now' }).click();
+  await expect(page).toHaveURL(/\/$/);
+  await expect(page.getByRole('heading', { level: 1, name: 'Today' })).toBeVisible();
 });

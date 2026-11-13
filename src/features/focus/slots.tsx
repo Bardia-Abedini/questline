@@ -2,12 +2,12 @@
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Link, useNavigate } from 'react-router';
+import { Link, useLocation, useNavigate } from 'react-router';
 import { clock, db, sessionToTimerState, useOpenFocusSession } from '@/data';
 import { remainingMs, timerPhase } from '@/domain/timer';
 import { useFormat } from '@/i18n/useFormat';
 import { buttonClass, Icon } from '@/ui';
-import { claimBootRedirect } from './engine/boot';
+import { claimBootRedirect, noteShellPath } from './engine/boot';
 import { registerNavigator } from './engine/engine';
 import { useAwaiting, useTick } from './hooks';
 import { liveAwaiting, restoreTarget } from './logic/machine';
@@ -26,12 +26,13 @@ export function ActiveSessionSlot() {
   const loaded = open !== undefined && awaitingRow !== undefined;
   const awaiting = loaded ? liveAwaiting(awaitingRow, clock.now()) : null;
 
+  const { pathname } = useLocation();
+  useEffect(() => noteShellPath(pathname), [pathname]);
   useEffect(() => registerNavigator((to) => navigate(to)), [navigate]);
   useEffect(() => {
     if (!loaded) return;
-    if (!claimBootRedirect()) return;
     const target = restoreTarget(open, awaitingRow, clock.now());
-    if (target) navigate(`/focus/${target}`, { replace: true });
+    if (claimBootRedirect(target)) navigate(`/focus/${target}`, { replace: true });
   }, [loaded, open, awaitingRow, navigate]);
 
   const sessionId = open?.id ?? awaiting?.session_id ?? null;
