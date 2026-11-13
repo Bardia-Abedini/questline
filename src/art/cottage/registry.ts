@@ -4,7 +4,9 @@ import {
   BuntingPennants,
   CornerFloorLamp,
   CornerPlant,
+  CornerUmbrellaStand,
   FloorBooks,
+  FloorFrontCushions,
   FloorYarnBasket,
   LampLantern,
   LampPaperGlobe,
@@ -12,16 +14,21 @@ import {
   RugStriped,
   SeatArmchair,
   SeatBeanbag,
+  SeatRockingChair,
   TableBookcase,
+  TableWritingDesk,
   TableTea,
   WallLeftLandscape,
   WallLeftMirror,
+  WallLeftPressedFlowers,
   WallRightClock,
+  WallRightPlantHanger,
   WallRightShelf,
   WindowCandles,
+  WindowGoldfishBowl,
   WindowPlant,
 } from './decor';
-import { PetBird, PetCat, PetTurtle } from './pets';
+import { PetBird, PetCat, PetHedgehog, PetTurtle } from './pets';
 import { FloorChecker, FloorPlanks, WallCream, WallSageStripes, WallStarry } from './surfaces';
 
 /**
@@ -50,6 +57,13 @@ export const DECOR_ART: Readonly<Record<string, FC>> = {
   rug_striped: RugStriped,
   floor_front_books: FloorBooks,
   floor_front_yarn: FloorYarnBasket,
+  wall_left_pressed_flowers: WallLeftPressedFlowers,
+  wall_right_plant_hanger: WallRightPlantHanger,
+  window_goldfish_bowl: WindowGoldfishBowl,
+  corner_umbrella_stand: CornerUmbrellaStand,
+  table_writing_desk: TableWritingDesk,
+  seat_rocking_chair: SeatRockingChair,
+  floor_front_cushions: FloorFrontCushions,
 };
 
 export const WALLPAPER_ART: Readonly<Record<string, FC>> = {
@@ -67,4 +81,5 @@ export const PET_ART: Readonly<Record<string, FC>> = {
   pet_cat: PetCat,
   pet_bird: PetBird,
   pet_turtle: PetTurtle,
+  pet_hedgehog: PetHedgehog,
 };

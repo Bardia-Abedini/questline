@@ -144,3 +144,46 @@ export function PetTurtle() {
     </g>
   );
 }
+
+/** A round hedgehog with a cozy spiky back, facing right. */
+export function PetHedgehog() {
+  return (
+    <g>
+      <g fill={PALETTE.peach} {...inkRoom}>
+        <ellipse cx="22" cy="43" rx="5" ry="2.6" />
+        <ellipse cx="40" cy="43" rx="5" ry="2.6" />
+      </g>
+      <g className="qa-breathe">
+        <path
+          d="M5 42 L3 33 L8 32 L5 24 L11 24 L10 16 L17 18 L19 10 L25 14 L29 7 L34 13 L40 10 L41 17 L47 17 L45 24 L50 27 L46 34 L48 42 Z"
+          fill={PALETTE.wood}
+          {...inkRoom}
+        />
+        <path
+          d="M12 36 L14 30 M20 32 L22 25 M28 28 L30 20 M36 26 L38 19"
+          stroke={PALETTE.woodShade}
+          strokeWidth="1.5"
+          strokeLinecap="round"
+        />
+        <path
+          d="M30 42 C28 31 35 23 45 26 C51 28 55 33 54 37 C53 40 51 42 48 42 Z"
+          fill={PALETTE.peach}
+          {...inkRoom}
+        />
+        <circle cx="35" cy="26" r="3" fill={PALETTE.peach} {...inkRoom} strokeWidth="1.2" />
+        <ellipse cx="40" cy="36" rx="2.6" ry="1.6" fill={PALETTE.rose} opacity="0.7" />
+        <g className="qa-blink">
+          <ellipse cx="44" cy="30" rx="1.4" ry="1.8" fill={INK} />
+        </g>
+        <circle cx="53.5" cy="34" r="1.7" fill={INK} />
+        <path
+          d="M46 37 Q49 39.5 52 37"
+          fill="none"
+          stroke={INK}
+          strokeWidth="1.2"
+          strokeLinecap="round"
+        />
+      </g>
+    </g>
+  );
+}

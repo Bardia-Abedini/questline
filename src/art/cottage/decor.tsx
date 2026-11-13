@@ -603,3 +603,265 @@ export function FloorYarnBasket() {
     </g>
   );
 }
+
+/* ------------------------------------------------ new items (wall, window, corner, table, seat, floor) */
+
+/** A frame of pressed wildflowers on cream paper. */
+export function WallLeftPressedFlowers() {
+  return (
+    <g>
+      <path d="M18 8 L32 -2 L46 8" fill="none" stroke={INK} strokeWidth="1.2" />
+      <circle cx="32" cy="-2" r="1.6" fill={INK} />
+      <rect x="4" y="6" width="56" height="46" rx="4" fill={PALETTE.wood} {...inkRoom} />
+      <rect
+        x="10"
+        y="12"
+        width="44"
+        height="34"
+        rx="2"
+        fill={PALETTE.cream}
+        {...inkRoom}
+        strokeWidth="1"
+      />
+      <path
+        d="M32 44 C31 36 33 28 32 20"
+        fill="none"
+        stroke={PALETTE.leafShade}
+        strokeWidth="1.5"
+      />
+      <path d="M32 36 C26 36 22 32 22 28 C27 28 31 31 32 36 Z" fill={PALETTE.leaf} />
+      <path d="M32 31 C38 31 42 27 42 23 C37 23 33 26 32 31 Z" fill={PALETTE.leaf} />
+      {[0, 72, 144, 216, 288].map((a) => (
+        <circle
+          key={a}
+          cx={32 + Math.cos((a * Math.PI) / 180) * 3.4}
+          cy={18 + Math.sin((a * Math.PI) / 180) * 3.4}
+          r="3"
+          fill={PALETTE.rose}
+          stroke={INK}
+          strokeWidth="0.8"
+        />
+      ))}
+      <circle cx="32" cy="18" r="2" fill={PALETTE.honey} />
+      <circle cx="18" cy="38" r="2.6" fill={PALETTE.lilac} stroke={INK} strokeWidth="0.8" />
+      <circle cx="46" cy="38" r="2.6" fill={PALETTE.lilac} stroke={INK} strokeWidth="0.8" />
+      <path d="M8 14 L8 26" {...shine} />
+    </g>
+  );
+}
+
+/** A hanging pot with a trailing plant on rope. */
+export function WallRightPlantHanger() {
+  return (
+    <g>
+      <circle cx="33" cy="3" r="2.4" fill={PALETTE.wood} {...inkRoom} strokeWidth="1.2" />
+      <path
+        d="M33 4 L16 26 M33 4 L50 26 M33 4 L33 27"
+        fill="none"
+        stroke={PALETTE.oatShade}
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
+      <path
+        d="M24 24 C20 34 22 40 24 56 M42 24 C46 34 44 42 42 52 M33 28 C36 38 33 46 35 58"
+        fill="none"
+        stroke={PALETTE.leafShade}
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
+      <g fill={PALETTE.leaf} {...inkRoom} strokeWidth="1">
+        <ellipse cx="26" cy="20" rx="5" ry="7" transform="rotate(-25 26 20)" />
+        <ellipse cx="40" cy="20" rx="5" ry="7" transform="rotate(25 40 20)" />
+        <ellipse cx="33" cy="17" rx="4.5" ry="7" />
+        <ellipse cx="22" cy="44" rx="2.8" ry="3.8" />
+        <ellipse cx="23" cy="54" rx="2.8" ry="3.8" />
+        <ellipse cx="43" cy="46" rx="2.8" ry="3.8" />
+        <ellipse cx="35" cy="56" rx="2.8" ry="3.8" />
+      </g>
+      <path d="M17 26 L49 26 L45 40 Q33 45 21 40 Z" fill={PALETTE.rust} {...inkRoom} />
+      <rect x="15" y="23" width="36" height="6" rx="3" fill={PALETTE.rustShade} {...inkRoom} />
+      <path d="M21 32 L22 37" {...shine} />
+    </g>
+  );
+}
+
+/** A round goldfish bowl on the sill. */
+export function WindowGoldfishBowl() {
+  return (
+    <g>
+      <path
+        d="M22 7 C10 10 10 25 22 27 L46 27 C58 25 58 10 46 7 Z"
+        fill={PALETTE.sky}
+        fillOpacity="0.55"
+        {...inkRoom}
+      />
+      <path d="M13 22 C16 27 22 27 22 27 L46 27 C46 27 52 27 55 22 Z" fill={PALETTE.honey} />
+      <ellipse cx="34" cy="7" rx="12" ry="2.6" fill="none" {...inkRoom} />
+      <path
+        d="M44 27 C42 20 46 16 44 12"
+        fill="none"
+        stroke={PALETTE.leaf}
+        strokeWidth="1.8"
+        strokeLinecap="round"
+      />
+      <path d="M26 15 L20 11 L20 19 Z" fill={PALETTE.rose} {...inkRoom} strokeWidth="1.2" />
+      <ellipse cx="32" cy="15" rx="7" ry="4.6" fill={PALETTE.rust} {...inkRoom} strokeWidth="1.2" />
+      <circle cx="36" cy="14" r="1.1" fill={INK} />
+      <circle cx="42" cy="9" r="1.2" fill={PALETTE.snow} opacity="0.7" />
+      <circle cx="45" cy="6" r="0.9" fill={PALETTE.snow} opacity="0.7" />
+      <path d="M15 13 Q14 18 17 21" {...shine} />
+    </g>
+  );
+}
+
+/** A clay stand holding a few umbrellas. */
+export function CornerUmbrellaStand() {
+  return (
+    <g>
+      <path d="M12 62 C10 40 12 24 15 8 C20 24 22 42 22 62 Z" fill={PALETTE.berry} {...inkRoom} />
+      <path d="M12 30 L22 30" stroke={PALETTE.berryShade} strokeWidth="2" strokeLinecap="round" />
+      <path d="M26 64 C26 46 28 30 32 14 C37 30 38 48 36 64 Z" fill={PALETTE.denim} {...inkRoom} />
+      <path d="M27 36 L37 36" stroke={PALETTE.denimShade} strokeWidth="2" strokeLinecap="round" />
+      <path
+        d="M38 66 L38 28 C38 18 30 18 30 24"
+        fill="none"
+        stroke={INK}
+        strokeWidth="5"
+        strokeLinecap="round"
+      />
+      <path
+        d="M38 66 L38 28 C38 18 30 18 30 24"
+        fill="none"
+        stroke={PALETTE.honey}
+        strokeWidth="2.6"
+        strokeLinecap="round"
+      />
+      <path d="M8 94 L6 60 L38 60 L36 94 Z" fill={PALETTE.teal} {...inkRoom} />
+      <rect x="4" y="56" width="36" height="8" rx="3" fill={PALETTE.tealShade} {...inkRoom} />
+      <path d="M11 68 L12 86" {...shine} />
+    </g>
+  );
+}
+
+/** A writing desk with a notebook and a quill in an inkwell. */
+export function TableWritingDesk() {
+  return (
+    <g>
+      <rect x="6" y="52" width="7" height="36" rx="2" fill={PALETTE.woodShade} {...inkRoom} />
+      <rect x="80" y="52" width="7" height="36" rx="2" fill={PALETTE.woodShade} {...inkRoom} />
+      <rect x="13" y="54" width="36" height="22" rx="3" fill={PALETTE.woodLight} {...inkRoom} />
+      <path d="M17 66 L45 66" stroke={PALETTE.wood} strokeWidth="1.2" />
+      <circle cx="31" cy="60" r="2" fill={PALETTE.honey} {...inkRoom} strokeWidth="1" />
+      <circle cx="31" cy="71" r="2" fill={PALETTE.honey} {...inkRoom} strokeWidth="1" />
+      <rect x="2" y="44" width="88" height="9" rx="3" fill={PALETTE.wood} {...inkRoom} />
+      <path d="M8 48 L84 48" stroke={PALETTE.woodLight} strokeWidth="1.2" />
+      <path
+        d="M10 43 L28 44.5 L28 33 L10 31 Z"
+        fill={PALETTE.cream}
+        {...inkRoom}
+        strokeWidth="1.2"
+      />
+      <path
+        d="M46 43 L28 44.5 L28 33 L46 31 Z"
+        fill={PALETTE.creamShade}
+        {...inkRoom}
+        strokeWidth="1.2"
+      />
+      <path
+        d="M13 35 L25 36 M13 39 L25 40 M31 36 L43 35 M31 40 L43 39"
+        stroke={PALETTE.oatShade}
+        strokeWidth="1"
+        strokeLinecap="round"
+      />
+      <path
+        d="M68 37 C70 26 76 16 84 8 C82 18 80 28 72 37 Z"
+        fill={PALETTE.cream}
+        {...inkRoom}
+        strokeWidth="1.2"
+      />
+      <path d="M70 36 C74 28 78 20 84 8" fill="none" stroke={PALETTE.oatShade} strokeWidth="1" />
+      <path
+        d="M62 44 L62 38 Q62 34 66 34 L74 34 Q78 34 78 38 L78 44 Z"
+        fill={PALETTE.denim}
+        {...inkRoom}
+      />
+      <rect
+        x="66"
+        y="31"
+        width="8"
+        height="4"
+        rx="1.5"
+        fill={PALETTE.denimShade}
+        {...inkRoom}
+        strokeWidth="1.2"
+      />
+      <path d="M65 38 L65 42" {...shine} strokeWidth="1.6" />
+    </g>
+  );
+}
+
+/** A wooden rocking chair with a rose cushion. */
+export function SeatRockingChair() {
+  return (
+    <g>
+      <path d="M6 80 Q50 94 94 80" fill="none" stroke={INK} strokeWidth="7" strokeLinecap="round" />
+      <path
+        d="M6 80 Q50 94 94 80"
+        fill="none"
+        stroke={PALETTE.woodLight}
+        strokeWidth="4"
+        strokeLinecap="round"
+      />
+      <path
+        d="M28 56 L24 82 M72 56 L76 82"
+        stroke={PALETTE.woodShade}
+        strokeWidth="4"
+        strokeLinecap="round"
+      />
+      <rect x="24" y="4" width="52" height="8" rx="4" fill={PALETTE.wood} {...inkRoom} />
+      <rect x="27" y="12" width="46" height="36" rx="5" fill={PALETTE.woodLight} {...inkRoom} />
+      <path
+        d="M36 14 L36 46 M45 14 L45 46 M54 14 L54 46 M63 14 L63 46"
+        stroke={PALETTE.wood}
+        strokeWidth="1.5"
+      />
+      <rect x="14" y="36" width="9" height="26" rx="4.5" fill={PALETTE.wood} {...inkRoom} />
+      <rect x="77" y="36" width="9" height="26" rx="4.5" fill={PALETTE.wood} {...inkRoom} />
+      <rect x="18" y="52" width="64" height="13" rx="6.5" fill={PALETTE.rose} {...inkRoom} />
+      <path d="M26 56 Q36 54 48 55" {...shine} />
+      <circle cx="50" cy="58.5" r="1.4" fill={PALETTE.roseShade} />
+    </g>
+  );
+}
+
+/** A pile of soft floor cushions. */
+export function FloorFrontCushions() {
+  return (
+    <g>
+      <rect x="3" y="24" width="48" height="13" rx="6.5" fill={PALETTE.lilac} {...inkRoom} />
+      <circle cx="27" cy="30.5" r="1.6" fill={PALETTE.lilacShade} />
+      <rect
+        x="9"
+        y="13"
+        width="36"
+        height="12"
+        rx="6"
+        fill={PALETTE.rose}
+        {...inkRoom}
+        transform="rotate(-4 27 19)"
+      />
+      <path d="M14 18 Q22 15 30 16" {...shine} />
+      <rect
+        x="17"
+        y="3"
+        width="22"
+        height="11"
+        rx="5.5"
+        fill={PALETTE.sage}
+        {...inkRoom}
+        transform="rotate(5 28 8)"
+      />
+      <circle cx="28" cy="8.5" r="1.4" fill={PALETTE.sageShade} />
+    </g>
+  );
+}

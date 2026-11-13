@@ -169,7 +169,13 @@ export const hairPonytail: AvatarItemArt = {
         fill={hair.shade}
         {...inkAvatar}
       />
-      <path d="M97 40 Q102 50 100 62" fill="none" stroke={hair.light} strokeWidth="2" strokeLinecap="round" />
+      <path
+        d="M97 40 Q102 50 100 62"
+        fill="none"
+        stroke={hair.light}
+        strokeWidth="2"
+        strokeLinecap="round"
+      />
     </g>
   ),
   hair: ({ hair }: AvatarArtProps) => (
