@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router';
 import { usePreferences } from '@/app/preferences/preferences';
 import { PATHS } from '@/app/routing';
 import { cottageTier, levelFromXp } from '@/domain/levels';
-import { useSettings } from '@/data';
+import { db, useSettings } from '@/data';
 import { useFormat } from '@/i18n/useFormat';
 import { useAppEvent } from '@/services';
 import { Button, cx, Icon, IconButton } from '@/ui';
@@ -15,7 +15,6 @@ import { ItemArt } from '../ui/ItemArt';
 import { Badge } from '../ui/Badge';
 import { useGameT } from '../ui/hooks';
 import { defFor } from '../logic/dailyQuests';
-import { db } from '@/data';
 import { buzz, playSound, useFxPrefs, type SoundName } from './sounds';
 import { fx, useFx, type CelebrationFx, type FloatFx, type NoteFx } from './store';
 import './effects.css';
@@ -243,7 +242,9 @@ function CelebrationCard({ c }: { c: CelebrationFx }) {
           <Icon name={c.kind === 'boss' ? 'sword' : 'star'} filled size={32} />
         </span>
         <h2 id={titleId} className="text-2xl font-semibold">
-          {c.kind === 'level' ? t('effects.level_up', { level: number(c.level) }) : t('effects.boss_title')}
+          {c.kind === 'level'
+            ? t('effects.level_up', { level: number(c.level) })
+            : t('effects.boss_title')}
         </h2>
         {c.kind === 'level' ? (
           <>
@@ -297,7 +298,6 @@ export function RewardEffects() {
   const notes = useFx((s) => s.notes);
   const celebrations = useFx((s) => s.celebrations);
   const reduce = usePreferences((s) => s.resolved.reduceMotion);
-  const calm = useFxPrefs((s) => s.celebrations === 'calm');
   const feedback = useFeedback();
 
   useAppEvent('reward.granted', ({ grant }) => {
@@ -329,7 +329,8 @@ export function RewardEffects() {
   });
   useAppEvent('daily_quest.completed', ({ dailyQuestId, reward }) => {
     void db.daily_quests.get(dailyQuestId).then((row) => {
-      if (row) fx.note({ kind: 'daily', questKey: defFor(row)?.key ?? row.quest_key, gold: reward.gold });
+      if (row)
+        fx.note({ kind: 'daily', questKey: defFor(row)?.key ?? row.quest_key, gold: reward.gold });
     });
   });
   useAppEvent('gold.spent', () => feedback('purchase', true));
@@ -348,9 +349,7 @@ export function RewardEffects() {
       {floats.map((f) => (
         <FloatPill key={f.id} f={f} />
       ))}
-      {celebration && !(calm && celebration.kind === 'boss' && false) && (
-        <CelebrationCard key={celebration.id} c={celebration} />
-      )}
+      {celebration && <CelebrationCard key={celebration.id} c={celebration} />}
       {notes.map((n) => (
         <NoteCard key={n.id} note={n} />
       ))}

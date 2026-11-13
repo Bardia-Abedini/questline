@@ -84,7 +84,9 @@ export const fx = {
   },
   celebrate(input: CelebrationInput): number {
     const id = nextId++;
-    useFx.setState((s) => ({ celebrations: [...s.celebrations, { ...input, id } as CelebrationFx] }));
+    useFx.setState((s) => ({
+      celebrations: [...s.celebrations, { ...input, id } as CelebrationFx],
+    }));
     return id;
   },
   dismissFloat(id: number) {
