@@ -69,3 +69,77 @@ export const accLeafEarrings: AvatarItemArt = {
     </g>
   ),
 };
+
+function starPath(cx: number, cy: number, r: number): string {
+  const pts = Array.from({ length: 10 }, (_, i) => {
+    const a = -Math.PI / 2 + (i * Math.PI) / 5;
+    const rad = i % 2 === 0 ? r : r * 0.5;
+    return `${(cx + Math.cos(a) * rad).toFixed(2)} ${(cy + Math.sin(a) * rad).toFixed(2)}`;
+  });
+  return `M${pts.join(' L')} Z`;
+}
+
+function StarDrop({ x }: { x: number }) {
+  return (
+    <g>
+      <path d={`M${x} 61 L${x} 66`} stroke={INK} strokeWidth="1.2" strokeLinecap="round" />
+      <path
+        d={starPath(x, 71, 5.4)}
+        fill={PALETTE.honey}
+        stroke={INK}
+        strokeWidth="1.2"
+        strokeLinejoin="round"
+      />
+    </g>
+  );
+}
+
+/** Little golden star earrings. */
+export const accStarEarrings: AvatarItemArt = {
+  eyes: () => (
+    <g>
+      <StarDrop x={34.5} />
+      <StarDrop x={85.5} />
+    </g>
+  ),
+};
+
+/** A rose flower clipped into the hair above the ear. */
+export const accFlowerHairclip: AvatarItemArt = {
+  eyes: () => (
+    <g>
+      <path
+        d="M70 41 C74 44 80 44 84 41"
+        fill="none"
+        stroke={PALETTE.leafShade}
+        strokeWidth="1.6"
+        strokeLinecap="round"
+      />
+      <ellipse
+        cx="83"
+        cy="45"
+        rx="4.5"
+        ry="2.2"
+        fill={PALETTE.leaf}
+        stroke={INK}
+        strokeWidth="1.2"
+        transform="rotate(40 83 45)"
+      />
+      {[0, 72, 144, 216, 288].map((a) => {
+        const rad = (a * Math.PI) / 180;
+        return (
+          <circle
+            key={a}
+            cx={76 + Math.cos(rad) * 3.6}
+            cy={39 + Math.sin(rad) * 3.6}
+            r="3.4"
+            fill={PALETTE.rose}
+            stroke={INK}
+            strokeWidth="1.2"
+          />
+        );
+      })}
+      <circle cx="76" cy="39" r="2.6" fill={PALETTE.honey} stroke={INK} strokeWidth="1.2" />
+    </g>
+  ),
+};

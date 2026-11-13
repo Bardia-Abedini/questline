@@ -106,3 +106,29 @@ export const hatFlowerCrown: AvatarItemArt = {
     </g>
   ),
 };
+
+/** A soft teal beret worn at a jaunty angle. */
+export const hatBeret: AvatarItemArt = {
+  hat: () => (
+    <g>
+      <path
+        d="M32 36 C28 22 44 12 62 14 C80 16 92 26 88 36 C86 42 72 40 60 40 C48 40 34 43 32 36 Z"
+        fill={PALETTE.teal}
+        {...inkAvatar}
+      />
+      <path
+        d="M33 37.5 C40 42 80 42 87.5 37 C86 43 72 41 60 41 C48 41 35 44 33 37.5 Z"
+        fill={PALETTE.tealShade}
+      />
+      <rect x="60" y="8" width="7" height="7" rx="3" fill={PALETTE.tealShade} {...inkAvatar} />
+      <path
+        d="M42 24 Q50 18 60 18.5"
+        fill="none"
+        stroke="#fff"
+        strokeOpacity={HIGHLIGHT_OPACITY}
+        strokeWidth="3"
+        strokeLinecap="round"
+      />
+    </g>
+  ),
+};

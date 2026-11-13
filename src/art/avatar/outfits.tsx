@@ -1,4 +1,4 @@
-import { HIGHLIGHT_OPACITY, inkAvatar, PALETTE } from '../style';
+import { HIGHLIGHT_OPACITY, INK, inkAvatar, PALETTE } from '../style';
 import type { AvatarItemArt } from './types';
 
 /** Outfits: the torso from y 86 down to the bottom edge (see src/art/style.ts). */
@@ -133,6 +133,100 @@ export const outfitStarRobe: AvatarItemArt = {
         <circle cx="92" cy="114" r="1.3" />
         <circle cx="24" cy="116" r="1" />
       </g>
+    </g>
+  ),
+};
+
+/** A chunky lilac knit sweater with a cream roll neck and cable stitches. */
+export const outfitKnitSweater: AvatarItemArt = {
+  body: () => (
+    <g>
+      <path
+        d="M14 122 C15 100 30 89 50 87 C54 92 66 92 70 87 C90 89 105 100 106 122 Z"
+        fill={PALETTE.lilac}
+        {...inkAvatar}
+      />
+      <path
+        d="M86 92 C97 99 104 108 105 121 L92 121 C92 110 90 100 86 92 Z"
+        fill={PALETTE.lilacShade}
+      />
+      <path
+        d="M52 100 Q56 106 52 112 Q48 118 52 122 M68 100 Q64 106 68 112 Q72 118 68 122 M60 100 L60 122"
+        fill="none"
+        stroke={PALETTE.cream}
+        strokeWidth="2"
+        strokeLinecap="round"
+      />
+      <path
+        d="M18 116 L102 116"
+        stroke={PALETTE.lilacShade}
+        strokeWidth="2"
+        strokeDasharray="2 3"
+        strokeLinecap="round"
+      />
+      <path
+        d="M24 106 Q29 97 37 94"
+        fill="none"
+        stroke="#fff"
+        strokeOpacity={HIGHLIGHT_OPACITY}
+        strokeWidth="3"
+        strokeLinecap="round"
+      />
+    </g>
+  ),
+  neck: () => (
+    <g>
+      <rect x="45" y="82" width="30" height="13" rx="6.5" fill={PALETTE.cream} {...inkAvatar} />
+      <path
+        d="M51 85 V92 M57 85 V92 M63 85 V92 M69 85 V92"
+        stroke={PALETTE.creamShade}
+        strokeWidth="1.6"
+        strokeLinecap="round"
+      />
+    </g>
+  ),
+};
+
+/** A sunny yellow raincoat with toggles and its hood down. */
+export const outfitRaincoat: AvatarItemArt = {
+  back: () => (
+    <path
+      d="M30 96 C26 80 40 72 60 73 C80 72 94 80 90 96 Z"
+      fill={PALETTE.honeyShade}
+      {...inkAvatar}
+    />
+  ),
+  body: () => (
+    <g>
+      <path
+        d="M14 122 C15 100 30 89 50 87 C54 92 66 92 70 87 C90 89 105 100 106 122 Z"
+        fill={PALETTE.honey}
+        {...inkAvatar}
+      />
+      <path
+        d="M86 92 C97 99 104 108 105 121 L92 121 C92 110 90 100 86 92 Z"
+        fill={PALETTE.honeyShade}
+      />
+      <path d="M60 94 L60 122" stroke={INK} strokeWidth="1.6" strokeLinecap="round" />
+      <g fill={PALETTE.rust} {...inkAvatar} strokeWidth="1.2">
+        <circle cx="55" cy="101" r="2.4" />
+        <circle cx="55" cy="109" r="2.4" />
+        <circle cx="55" cy="117" r="2.4" />
+      </g>
+      <path
+        d="M24 106 Q29 97 37 94"
+        fill="none"
+        stroke="#fff"
+        strokeOpacity={HIGHLIGHT_OPACITY}
+        strokeWidth="3"
+        strokeLinecap="round"
+      />
+    </g>
+  ),
+  neck: () => (
+    <g fill={PALETTE.honey} {...inkAvatar} strokeWidth="1.6">
+      <path d="M50 87 L58 93 L52 99 L46 92 Z" />
+      <path d="M70 87 L62 93 L68 99 L74 92 Z" />
     </g>
   ),
 };
