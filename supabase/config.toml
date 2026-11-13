@@ -1,0 +1,62 @@
+# Supabase CLI configuration for local development (`npx supabase start`).
+# Production settings live in the Supabase dashboard; see supabase/README.md.
+project_id = "questline"
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public"]
+extra_search_path = ["public", "extensions"]
+max_rows = 1000
+
+[db]
+port = 54322
+major_version = 17
+
+[realtime]
+enabled = true
+
+[studio]
+enabled = true
+port = 54323
+
+[inbucket]
+# Local email viewer for confirmation and password-reset mails.
+enabled = true
+port = 54324
+
+[auth]
+enabled = true
+site_url = "http://localhost:5173"
+additional_redirect_urls = ["http://localhost:5173/account", "http://localhost:4173/account"]
+jwt_expiry = 3600
+enable_refresh_token_rotation = true
+enable_signup = true
+
+[auth.email]
+enable_signup = true
+enable_confirmations = true
+double_confirm_changes = true
+
+[auth.external.google]
+enabled = false
+client_id = "env(SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_ID)"
+secret = "env(SUPABASE_AUTH_EXTERNAL_GOOGLE_SECRET)"
+skip_nonce_check = false
+
+[edge_runtime]
+enabled = true
+policy = "per_worker"
+
+# `ai` is called only by signed-in players: the gateway verifies the JWT too.
+[functions.ai]
+verify_jwt = true
+
+# `calendar` receives Google's OAuth redirect (no JWT; checked with a one-time state) and
+# verifies the JWT itself for every other request.
+[functions.calendar]
+verify_jwt = false
+
+# `push` is also called by the scheduler with x-cron-secret; it verifies JWTs itself.
+[functions.push]
+verify_jwt = false

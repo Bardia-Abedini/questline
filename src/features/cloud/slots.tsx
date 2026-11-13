@@ -1,11 +1,15 @@
 /**
  * Public API of the Cloud package: components mounted by the shell and the AI client hook.
- * OWNER: Cloud. Keep the export names and types; replace the bodies.
+ * OWNER: Cloud.
  */
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
+import { aiStatusFrom, createRealAiClient } from './aiClient';
 import { createMockAiClient } from './aiMock';
-import { isAiMockEnabled, unavailableAiClient, type AiClient } from './aiTypes';
+import { isAiMockEnabled, type AiClient } from './aiTypes';
+import { AccountChoiceDialog } from './components/AccountChoiceDialog';
+import { SyncBadge } from './components/SyncBadge';
+import { useCloud } from './store';
 
 export {
   AiUnavailableError,
@@ -17,22 +21,32 @@ export {
   type AiStepSuggestion,
 } from './aiTypes';
 
-/** Small sync indicator for the header (guest / syncing / synced / offline). */
+/**
+ * Small sync indicator for the header: guest / syncing / synced / offline / error (retry).
+ * Also hosts the one-time Merge / Keep account / Keep device question after sign-in.
+ */
 export function SyncStatusSlot() {
-  return null;
+  return (
+    <>
+      <SyncBadge />
+      <AccountChoiceDialog />
+    </>
+  );
 }
 
 /**
- * The AI client. Placeholder until Cloud lands: status `guest` (unavailable), or the
- * deterministic mock when localStorage['ql.ai.mock'] === '1'. Check `available` before
- * showing AI buttons; every method throws AiUnavailableError when it is false.
+ * The AI client. `status` is `guest` (not signed in), `offline`, `unconfigured` (no AI key on
+ * the server), `limit_reached` (daily allowance used) or `ready`. With
+ * localStorage['ql.ai.mock'] === '1' it is the deterministic mock (tests). Check `available`
+ * before showing AI buttons; every method throws AiUnavailableError when it is false.
  */
 export function useAi(): AiClient {
   const { i18n } = useTranslation();
-  // Re-created on language change so replies follow the current language.
+  const status = useCloud(aiStatusFrom);
   return useMemo(
-    () => (isAiMockEnabled() ? createMockAiClient() : unavailableAiClient('guest')),
+    () => (isAiMockEnabled() ? createMockAiClient() : createRealAiClient(status)),
+    // Re-created on language change so replies follow the current language.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [i18n.language],
+    [status, i18n.language],
   );
 }
