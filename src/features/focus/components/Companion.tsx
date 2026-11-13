@@ -22,8 +22,8 @@ export function Companion({
       </div>
       <svg
         viewBox="0 0 64 64"
-        width={58}
-        height={58}
+        width={72}
+        height={72}
         role="img"
         aria-label={resting ? t('companion.resting') : t('companion.studying')}
         className="shrink-0"
