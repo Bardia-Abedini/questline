@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router';
 import { db, sessionToTimerState, type Settings, type Step } from '@/data';
 import { remainingMs, runningMs, timerPhase } from '@/domain/timer';
 import { useFormat } from '@/i18n/useFormat';
+import { QuickCaptureSlot } from '@/features/quests/slots';
 import { Button, Chip, cx, Icon } from '@/ui';
 import { Companion } from '../components/Companion';
 import { FocusFrame, FocusTools } from '../components/Frame';
@@ -29,6 +30,7 @@ import {
 } from '../logic/sessions';
 
 const ENTER_ARM_MS = 3000;
+const SECONDARY_ACTION = 'min-w-fit flex-1 basis-0 whitespace-nowrap px-3.5';
 
 /** Focus mode while the timer runs or is paused. */
 export function TimerView({
@@ -231,22 +233,46 @@ export function TimerView({
         {next ? t('timer.next', { step: next.title }) : t('timer.last_step')}
       </p>
 
-      <div className="grid w-full max-w-sm grid-cols-2 gap-3">
-        <Button size="lg" icon="check" onClick={() => void done()} loading={busy}>
-          {t('actions.done')}
-        </Button>
+      <div className="flex w-full max-w-sm flex-col gap-3">
+        <div className="grid grid-cols-2 gap-3">
+          <Button
+            size="lg"
+            icon="check"
+            onClick={() => void done()}
+            loading={busy}
+            className="min-w-0"
+          >
+            {t('actions.done')}
+          </Button>
+          <Button
+            size="lg"
+            variant="secondary"
+            icon={paused ? 'play' : 'pause'}
+            onClick={() => void togglePause()}
+            className="min-w-0"
+          >
+            {paused ? t('actions.resume') : t('actions.pause')}
+          </Button>
+        </div>
+        {/* Equal widths when both fit on one line; each takes a full line when they do not
+            (larger text, dyslexia font), so labels never wrap inside a button. */}
+        <div className="flex flex-wrap gap-3">
+          <Button
+            variant="soft"
+            icon="feather"
+            onClick={() => setDialog('distracted')}
+            className={SECONDARY_ACTION}
+          >
+            {t('actions.distracted')}
+          </Button>
+          <QuickCaptureSlot variant="button" className={SECONDARY_ACTION} />
+        </div>
         <Button
-          size="lg"
-          variant="secondary"
-          icon={paused ? 'play' : 'pause'}
-          onClick={() => void togglePause()}
+          variant="ghost"
+          icon="stop"
+          onClick={() => setDialog('stop')}
+          className="self-center"
         >
-          {paused ? t('actions.resume') : t('actions.pause')}
-        </Button>
-        <Button variant="soft" icon="feather" onClick={() => setDialog('distracted')}>
-          {t('actions.distracted')}
-        </Button>
-        <Button variant="ghost" icon="stop" onClick={() => setDialog('stop')}>
           {t('actions.stop')}
         </Button>
       </div>

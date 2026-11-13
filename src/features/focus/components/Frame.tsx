@@ -2,7 +2,6 @@ import type { ReactNode, Ref } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
 import { PATHS } from '@/app/routing';
-import { QuickCaptureSlot } from '@/features/quests/slots';
 import { useFormat } from '@/i18n/useFormat';
 import { Chip, cx, IconButton } from '@/ui';
 
@@ -69,7 +68,6 @@ export function FocusTools({ onSounds }: { onSounds: () => void }) {
           onClick={onSounds}
           className="text-muted"
         />
-        <QuickCaptureSlot />
       </div>
     </>
   );

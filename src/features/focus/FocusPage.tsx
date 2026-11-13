@@ -9,7 +9,7 @@ import { Button, buttonClass, Icon, Spinner } from '@/ui';
 import { setAmbience, stopAmbience } from './audio/audio';
 import { Companion } from './components/Companion';
 import { FocusFrame } from './components/Frame';
-import { markBootHandled } from './engine/boot';
+import { enteredFocus, leftFocus } from './engine/boot';
 import { registerNavigator } from './engine/engine';
 import { useFocusSettings, useSessionBundle, type LoadedBundle } from './hooks';
 import { decideArrival, nextOpenStep, viewFor } from './logic/machine';
@@ -37,7 +37,6 @@ export function FocusPage() {
   const { sessionId } = useParams();
   const location = useLocation();
   const navigate = useNavigate();
-  useEffect(() => markBootHandled(), []);
   useEffect(() => registerNavigator((to) => navigate(to)), [navigate]);
   const switchTo = (location.state as { switchTo?: string } | null)?.switchTo ?? null;
   if (sessionId) return <SessionScreen key={sessionId} sessionId={sessionId} switchTo={switchTo} />;
@@ -234,6 +233,10 @@ function AmbiencePlayer({ active }: { active: boolean }) {
 function SessionScreen({ sessionId, switchTo }: { sessionId: string; switchTo: string | null }) {
   const bundle = useSessionBundle(sessionId);
   const settings = useFocusSettings();
+  useEffect(() => {
+    enteredFocus();
+    return () => leftFocus(sessionId);
+  }, [sessionId]);
   if (bundle === undefined) return <Loading />;
   if (!bundle.session) return <QuietRoom state={{ kind: 'empty' }} onStart={() => {}} />;
   const b = bundle as LoadedBundle;

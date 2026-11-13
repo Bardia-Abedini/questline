@@ -17,6 +17,7 @@ import {
 } from '../components/Frame';
 import { ProgressRing } from '../components/ProgressRing';
 import { AmbienceSheet, IdleCheckin } from '../components/Sheets';
+import { lastShellPath } from '../engine/boot';
 import { chime, checkTimerNow } from '../engine/engine';
 import {
   useDocumentTitle,
@@ -54,13 +55,18 @@ function useStartAndGo() {
 }
 
 /** "Stop for now" from a result screen: nothing to save, just leave warmly. */
-function useStopForNow() {
+/**
+ * "Stop for now" from a result screen: nothing more to save, just leave warmly. Back to the
+ * quest's page when focus was started from there, otherwise Today.
+ */
+function useStopForNow(questId: string | null) {
   const { t } = useTranslation('focus');
   const navigate = useNavigate();
   return async () => {
     await clearAwaiting();
     showToast({ title: t('stopped.toast'), tone: 'info', icon: 'heart', duration: 4000 });
-    navigate(PATHS.today);
+    const from = lastShellPath();
+    navigate(questId && from === `/quests/${questId}` ? from : PATHS.today);
   };
 }
 
@@ -81,7 +87,7 @@ export function BreakView({
   const remaining = remainingMs(state, now);
   const phase = timerPhase(state, now);
   const startAndGo = useStartAndGo();
-  const stopForNow = useStopForNow();
+  const stopForNow = useStopForNow(bundle.session.quest_id);
   const heading = useFocusOnMount<HTMLHeadingElement>();
   const [sounds, setSounds] = useState(false);
   useEffect(() => {
@@ -149,7 +155,7 @@ export function BreakOverView({
   const { t } = useTranslation('focus');
   const { step } = bundle;
   const startAndGo = useStartAndGo();
-  const stopForNow = useStopForNow();
+  const stopForNow = useStopForNow(bundle.session.quest_id);
   const heading = useFocusOnMount<HTMLHeadingElement>();
   return (
     <FocusFrame>
@@ -193,7 +199,7 @@ export function TimeUpView({
   const format = useFormat();
   const { session, step } = bundle;
   const startAndGo = useStartAndGo();
-  const stopForNow = useStopForNow();
+  const stopForNow = useStopForNow(bundle.session.quest_id);
   const navigate = useNavigate();
   const heading = useFocusOnMount<HTMLHeadingElement>();
   const rewards = useLiveQuery(() => sessionRewards(session), [session]);
@@ -323,7 +329,7 @@ export function StepDoneView({ bundle, questDone }: { bundle: LoadedBundle; ques
   const { t } = useTranslation('focus');
   const { session, step, quest, steps } = bundle;
   const startAndGo = useStartAndGo();
-  const stopForNow = useStopForNow();
+  const stopForNow = useStopForNow(bundle.session.quest_id);
   const heading = useFocusOnMount<HTMLHeadingElement>();
   const rewards = useLiveQuery(() => sessionRewards(session), [session]);
   const next = nextOpenStep(steps, session.step_id);

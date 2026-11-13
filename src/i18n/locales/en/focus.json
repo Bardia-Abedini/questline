@@ -37,7 +37,7 @@
     "stop": "Stop"
   },
   "keys": {
-    "hint": "Space pauses, Enter twice marks done, Esc stops.",
+    "hint": "Space pauses, Enter twice marks done, Q captures a thought, Esc stops.",
     "enter_again": "Press Enter again to mark this step done"
   },
   "announce": {
