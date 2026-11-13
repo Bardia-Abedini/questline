@@ -11,12 +11,12 @@
     "title_label": "Title",
     "no_title": "No title",
     "streak_title": "Active days",
-    "streak_value_one": "{{count}} day",
-    "streak_value_other": "{{count}} days",
+    "streak_value_one": "{{formatted}} day",
+    "streak_value_other": "{{formatted}} days",
     "streak_new": "Finish one small step to light the first day.",
     "streak_active": "Today counts. Lovely work.",
     "streak_resting": "Resting. It waits for you and picks up when you return.",
-    "streak_best": "Best: {{count}}"
+    "streak_best": "Best: {{best}}"
   },
   "avatar": {
     "editor_title": "Dress your adventurer",

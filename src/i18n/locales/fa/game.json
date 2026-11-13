@@ -11,12 +11,12 @@
     "title_label": "لقب",
     "no_title": "بدون لقب",
     "streak_title": "روزهای فعال",
-    "streak_value_one": "{{count}} روز",
-    "streak_value_other": "{{count}} روز",
+    "streak_value_one": "{{formatted}} روز",
+    "streak_value_other": "{{formatted}} روز",
     "streak_new": "یک قدم کوچک بردار تا اولین روز روشن شود.",
     "streak_active": "امروز هم حساب شد. آفرین!",
     "streak_resting": "در حال استراحت. منتظرت می‌ماند و هر وقت برگردی ادامه می‌دهد.",
-    "streak_best": "بهترین: {{count}}"
+    "streak_best": "بهترین: {{best}}"
   },
   "avatar": {
     "editor_title": "لباس ماجراجویت را انتخاب کن",
