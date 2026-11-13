@@ -1,7 +1,243 @@
 {
-  "placeholder": {
+  "empty": {
     "title": "Focus mode",
-    "body": "A quiet room with just your timer and your step. Nothing else will be here.",
-    "back": "Back to Today"
+    "body": "A quiet room with just your timer and your step. Pick a step from Today to begin.",
+    "back": "Back to Today",
+    "history": "Focus history"
+  },
+  "loading": "Getting your timer ready…",
+  "unknown_step": {
+    "title": "We couldn't find that step",
+    "body": "It may have been removed or moved. Nothing is lost; pick another step from Today."
+  },
+  "already_done": {
+    "title": "That step is already done",
+    "body": "Nice. Want to keep the momentum going with the next one?",
+    "next": "Start the next step"
+  },
+  "tools": {
+    "leave": "Leave focus mode (your timer keeps going)",
+    "sounds": "Background sounds"
+  },
+  "timer": {
+    "label": "Time left",
+    "paused": "Paused",
+    "quest": "Quest",
+    "next": "Next: {{step}}",
+    "last_step": "This is the last step of the quest",
+    "length": "{{minutes}} min timer",
+    "just_start": "Just 5 minutes",
+    "double_xp": "Double XP"
+  },
+  "actions": {
+    "done": "Done",
+    "pause": "Pause",
+    "resume": "Resume",
+    "distracted": "I got distracted",
+    "stop": "Stop"
+  },
+  "keys": {
+    "hint": "Space pauses, Enter twice marks done, Esc stops.",
+    "enter_again": "Press Enter again to mark this step done"
+  },
+  "announce": {
+    "started": "Timer started: {{time}} for {{step}}",
+    "paused": "Timer paused",
+    "resumed": "Timer running again",
+    "minutes_left_one": "{{value}} minute left",
+    "minutes_left_other": "{{value}} minutes left"
+  },
+  "doc_title": {
+    "running": "{{time}} · {{step}}",
+    "paused": "Paused {{time}} · {{step}}",
+    "break": "Break {{time}}"
+  },
+  "switch": {
+    "title": "You're in the middle of “{{current}}”",
+    "body": "Your timer is still going here. Want to switch to “{{other}}” instead? This one's time is kept.",
+    "action": "Switch step",
+    "stay": "Stay here"
+  },
+  "length": {
+    "title": "Timer length",
+    "description": "Pick a length. The time you've already focused stays.",
+    "presets": "Lengths",
+    "minutes": "{{value}} min",
+    "custom": "Custom length (minutes)",
+    "set": "Set",
+    "invalid": "Use a whole number from 1 to 240."
+  },
+  "distraction": {
+    "title": "Park that thought",
+    "description": "Write it down and it waits in your Inbox. Your timer keeps going.",
+    "label": "What popped up?",
+    "placeholder": "Reply to Sam, buy oat milk…",
+    "save": "Park it in Inbox",
+    "log_only": "Just note it",
+    "cancel": "Back to my step",
+    "saved": "Parked in your Inbox",
+    "logged": "Noted. Back to it."
+  },
+  "stop": {
+    "title": "Stop for now?",
+    "body": "Your {{time}} of focus is saved. You can pick this step up any time.",
+    "keep": "Keep going",
+    "confirm": "Stop for now"
+  },
+  "ambience": {
+    "title": "Background sounds",
+    "track": "Sound",
+    "none": "Off",
+    "rain": "Rain",
+    "cafe": "Cafe",
+    "lofi": "Lo-fi",
+    "brown_noise": "Brown noise",
+    "volume": "Volume",
+    "sound_off": "Sound is turned off in Settings, so this stays quiet."
+  },
+  "pledge": {
+    "title": "Phone away, tabs closed",
+    "body": "Take a breath. Your timer starts in a moment.",
+    "count": "Starting in {{value}}",
+    "skip": "Start now"
+  },
+  "time_up": {
+    "title": "Time's up. Nice focus!",
+    "away_title": "Your timer ended while you were away",
+    "away_body": "No problem at all. What would you like to do next?",
+    "focused": "You focused {{time}} on this step.",
+    "bonus": "Focus bonus",
+    "break": "Take a {{minutes}}-minute break",
+    "continue": "Keep going",
+    "done": "Done with this step",
+    "stop": "Stop for now"
+  },
+  "idle": {
+    "title": "Still on it?",
+    "body": "Your timer ended a while ago. Whatever happened is fine.",
+    "done": "Done",
+    "still": "Still going",
+    "pulled": "I got pulled away"
+  },
+  "break": {
+    "title": "Take a breather",
+    "body": "Stretch, sip some water, look out of a window.",
+    "label": "Break time left",
+    "back": "Back to my step",
+    "over_title": "Break's over",
+    "over_body": "Ready to get back to “{{step}}”?",
+    "resume": "Back to it"
+  },
+  "done": {
+    "title": "Step done!",
+    "estimate": "This step",
+    "rewards": "You earned",
+    "focus_bonus": "Focus bonus",
+    "bonus_gold": "Lucky find",
+    "next_label": "Next step",
+    "next": "Start next step",
+    "stop": "Stop for now"
+  },
+  "finish": {
+    "title": "Quest complete!",
+    "body": "You finished “{{quest}}”. Every step of it.",
+    "estimate": "Whole quest",
+    "rewards": "Quest rewards",
+    "today": "Back to Today",
+    "history": "See focus history"
+  },
+  "stopped": {
+    "title": "Saved. Rest is part of it.",
+    "body": "You focused {{time}} on “{{step}}”. It's all kept.",
+    "again": "Pick it up again",
+    "today": "Back to Today",
+    "toast": "Saved. Come back whenever you're ready."
+  },
+  "estimate": {
+    "guess": "Your guess",
+    "actual": "Actual",
+    "no_guess": "No guess",
+    "note": "Just data for next time. Guessing gets easier the more you do it."
+  },
+  "reward": {
+    "xp": "+{{value}} XP",
+    "gold": "+{{value}} gold"
+  },
+  "companion": {
+    "studying": "Your study owl is reading along",
+    "resting": "Your study owl is resting"
+  },
+  "banner": {
+    "label": "Focus session",
+    "focusing": "Focusing: {{step}}",
+    "paused": "Paused: {{step}}",
+    "break": "On a break",
+    "left": "{{time}} left",
+    "paused_short": "Paused at {{time}}",
+    "time_up": "Time's up for “{{step}}”",
+    "away": "Your timer ended while you were away",
+    "choose": "Choose what's next",
+    "back": "Back to focus"
+  },
+  "notify": {
+    "nudge_title": "Still with your quest?",
+    "nudge_body": "“{{step}}” is waiting, and your timer is still going. Tap to come back.",
+    "focus_end_title": "Time's up. Nice focus!",
+    "focus_end_body": "Done with “{{step}}”, or keep going? Tap to choose.",
+    "break_end_title": "Break's over",
+    "break_end_body": "Ready to get back to “{{step}}”?"
+  },
+  "welcome_back": {
+    "title": "Welcome back",
+    "body": "Your timer kept going. Pick up right where you were.",
+    "allow": "Nudge me next time"
+  },
+  "history": {
+    "title": "Focus history",
+    "subtitle": "Every session counts, short ones too.",
+    "empty_title": "No sessions yet",
+    "empty_body": "Your focus sessions will show up here, day by day.",
+    "day_total": "{{time}} focused",
+    "untitled": "A step",
+    "range": "{{start}} – {{end}}",
+    "focused": "Focused {{time}}",
+    "away": "Away {{time}}",
+    "distractions_one": "{{value}} distraction",
+    "distractions_other": "{{value}} distractions",
+    "more": "Show more",
+    "reason": {
+      "timer_done": "Timer finished",
+      "step_done": "Step done",
+      "stopped": "Stopped",
+      "ended_while_away": "Ended while away",
+      "abandoned": "Step removed"
+    }
+  },
+  "settings": {
+    "title": "Focus",
+    "description": "Timer lengths, nudges and sounds.",
+    "focus_length": "Focus length",
+    "break_length": "Break length",
+    "custom": "Custom (minutes)",
+    "minutes": "{{value}} min",
+    "pledge": "Start-of-session pledge",
+    "pledge_hint": "A 3-second “phone away, tabs closed” moment before the timer. You can skip it.",
+    "nudge": "Nudge me when I leave the app",
+    "nudge_hint": "A gentle sound and notification while a timer runs. Time away is never held against you.",
+    "nudge_after": "Nudge after",
+    "seconds": "{{value}} seconds",
+    "minutes_after_one": "{{value}} minute",
+    "minutes_after_other": "{{value}} minutes",
+    "idle": "“Still on it?” check-in",
+    "idle_hint": "Asked when a timer ended a while ago and nothing has happened since.",
+    "idle_off": "Never",
+    "notifications": "System notifications",
+    "notifications_granted": "On. Nudges can reach you outside the app.",
+    "notifications_denied": "Blocked in your browser settings. Sound nudges still work.",
+    "notifications_unsupported": "This browser can't show notifications. Sound nudges still work.",
+    "notifications_default": "Off for now.",
+    "notifications_allow": "Allow notifications",
+    "ambience": "Background sound",
+    "history": "Focus history"
   }
 }
