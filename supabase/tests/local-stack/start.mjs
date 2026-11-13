@@ -190,7 +190,15 @@ start('rest', POSTGREST_BIN, [], {
 start(
   'functions',
   DENO_BIN,
-  ['run', '--allow-net', '--allow-env', '--allow-read', join(HERE, 'functions-host.ts')],
+  [
+    'run',
+    '--config',
+    join(ROOT, 'supabase/functions/deno.json'),
+    '--allow-net',
+    '--allow-env',
+    '--allow-read',
+    join(HERE, 'functions-host.ts'),
+  ],
   {
     PORT: String(PORTS.functions),
     SUPABASE_URL: API_URL,
