@@ -6,7 +6,17 @@ import tseslint from 'typescript-eslint';
 import prettier from 'eslint-config-prettier';
 
 export default tseslint.config(
-  { ignores: ['dist', 'dev-dist', 'coverage', 'test-results', 'playwright-report', 'public'] },
+  {
+    ignores: [
+      '.claude/**',
+      'dist',
+      'dev-dist',
+      'coverage',
+      'test-results',
+      'playwright-report',
+      'public',
+    ],
+  },
   {
     extends: [js.configs.recommended, ...tseslint.configs.recommended],
     files: ['**/*.{ts,tsx}'],

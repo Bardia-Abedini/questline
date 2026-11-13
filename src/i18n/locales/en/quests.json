@@ -365,5 +365,9 @@
     "title": "Quests",
     "active_limit": "Active quests at once",
     "active_limit_hint": "A short list keeps today clear. Starting another one asks you to swap."
+  },
+  "source": {
+    "distraction": "From a focus session",
+    "distraction_hint": "Parked with “I got distracted” while you were focusing."
   }
 }
