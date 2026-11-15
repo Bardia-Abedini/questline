@@ -7,6 +7,7 @@ import {
   clock,
   dailyQuestsRepo,
   db,
+  getCurrentUserId,
   getProfile,
   localMeta,
   writeTransaction,
@@ -22,7 +23,7 @@ import {
   type DayActivity,
 } from '@/domain/dailyQuests';
 import { addDays, localDateTimeToMs, toLocalDate } from '@/domain/dates';
-import { createRng, type Rng } from '@/domain/rng';
+import { createRng, seedFromString, type Rng } from '@/domain/rng';
 import { events, grantReward, REWARD_TABLES } from '@/services';
 import { spendPowerUp } from './powerUps';
 
@@ -43,26 +44,63 @@ export async function listDailyQuests(day: LocalDate): Promise<DailyQuest[]> {
   return rows.sort((a, b) => a.slot - b.slot);
 }
 
-/** Creates today's three goals if they do not exist yet. Safe to call often. */
+/**
+ * A stable, UUID-shaped id from text (four FNV-1a hashes with different salts), so every
+ * device derives the same id for the same player, day and slot. Version nibble 5 and the
+ * RFC variant bits keep it a valid UUID.
+ */
+export function stableUuid(text: string): string {
+  const hex = [0, 1, 2, 3]
+    .map((i) => seedFromString(`${i}|${text}`).toString(16).padStart(8, '0'))
+    .join('');
+  const variant = ((parseInt(hex[16]!, 16) & 0x3) | 0x8).toString(16);
+  return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-5${hex.slice(13, 16)}-${variant}${hex.slice(17, 20)}-${hex.slice(20, 32)}`;
+}
+
+/** The player's seed for daily quests: the account id when signed in, else the profile id. */
+export async function dailySeed(): Promise<string> {
+  return getCurrentUserId() ?? (await getProfile()).id;
+}
+
+/** Deterministic id of a daily quest row. */
+export function dailyQuestId(seed: string, day: LocalDate, slot: number): string {
+  return stableUuid(`daily:${seed}:${day}:${slot}`);
+}
+
+/**
+ * Creates the day's three goals if they do not exist yet. Idempotent and the same on every
+ * device: ids and goals derive from the player seed, the day and the slot, so two offline
+ * devices produce identical rows and sync merges them instead of keeping two sets.
+ */
 export async function ensureDailyQuests(day: LocalDate = clock.today()): Promise<DailyQuest[]> {
-  const profile = await getProfile();
-  return writeTransaction(['daily_quests', 'profile'], async () => {
+  const seed = await dailySeed();
+  return writeTransaction(['daily_quests'], async () => {
     const existing = await listDailyQuests(day);
     if (existing.length > 0) return existing;
-    const defs = generateDailyQuests(day, profile.id);
-    return dailyQuestsRepo.createMany(
-      defs.map((d, slot) => ({
-        day,
-        slot,
-        quest_key: d.key,
-        kind: d.kind,
-        target: d.target,
-        reward_gold: d.rewardGold,
-        completed_at: null,
-        rewarded_at: null,
-        rerolled: false,
-      })),
-    );
+    const rows: DailyQuest[] = [];
+    for (const [slot, d] of generateDailyQuests(day, seed).entries()) {
+      const id = dailyQuestId(seed, day, slot);
+      const prior = await db.daily_quests.get(id);
+      if (prior) {
+        if (prior.deleted_at === null) rows.push(prior);
+        continue;
+      }
+      rows.push(
+        await dailyQuestsRepo.create({
+          id,
+          day,
+          slot,
+          quest_key: d.key,
+          kind: d.kind,
+          target: d.target,
+          reward_gold: d.rewardGold,
+          completed_at: null,
+          rewarded_at: null,
+          rerolled: false,
+        }),
+      );
+    }
+    return rows;
   });
 }
 

@@ -10,11 +10,19 @@ import {
   getProfile,
   ledgerTotals,
   setClock,
+  setCurrentUserId,
+  UUID_RE,
 } from '@/data';
 import { sequenceRng } from '@/domain/rng';
 import { completeStep, events, grantReward, InsufficientGoldError } from '@/services';
 import { checkAchievements, hasComeback, isAccurate } from './achievements';
-import { dayActivity, ensureDailyQuests, evaluateDailyQuests, rerollDaily } from './dailyQuests';
+import {
+  dayActivity,
+  ensureDailyQuests,
+  evaluateDailyQuests,
+  rerollDaily,
+  stableUuid,
+} from './dailyQuests';
 import { equipAvatar, placeCottageItem, resolveRoom } from './looks';
 import {
   activateLuckyCharm,
@@ -242,5 +250,29 @@ describe('achievements', () => {
       0,
     );
     expect(gold).toBe(10 + 15 + 50 + 40);
+  });
+});
+
+describe('daily quest ids are the same on every device', () => {
+  it('two independent generations for the same day produce identical rows', async () => {
+    const userId = '0d3c6a51-3f0e-4a8c-9a8e-2b1f7c9d4e10';
+    const generate = async () => {
+      await resetAll();
+      setClock(T0);
+      setCurrentUserId(userId);
+      await ensureLocalData();
+      const rows = await ensureDailyQuests('2026-03-10');
+      return rows.map((r) => [r.id, r.slot, r.quest_key]);
+    };
+    const a = await generate();
+    const b = await generate();
+    expect(a).toHaveLength(3);
+    expect(b).toEqual(a);
+    for (const [id] of a) expect(UUID_RE.test(id as string)).toBe(true);
+    // Idempotent: calling again, even concurrently, never adds rows.
+    await Promise.all([ensureDailyQuests('2026-03-10'), ensureDailyQuests('2026-03-10')]);
+    expect(await db.daily_quests.count()).toBe(3);
+    expect(stableUuid('x')).toBe(stableUuid('x'));
+    expect(stableUuid('x')).not.toBe(stableUuid('y'));
   });
 });
