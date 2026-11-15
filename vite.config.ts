@@ -42,6 +42,8 @@ export default defineConfig({
         navigateFallback: '/index.html',
         navigateFallbackDenylist: [/^\/api\//],
         cleanupOutdatedCaches: true,
+        // Cloud: web push and notification clicks (public/push-sw.js).
+        importScripts: ['push-sw.js'],
       },
       devOptions: { enabled: false },
     }),
