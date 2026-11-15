@@ -216,3 +216,111 @@ test('Persian pass: home and shop in RTL with no horizontal scroll', async ({ pa
   await expectNoHorizontalScroll(page);
   expect(errors).toEqual([]);
 });
+
+/* ------------------------------------------ with the real Quests and Focus screens */
+
+/** Adds a quest through the real form and lands on its detail page. */
+async function addRealQuest(
+  page: Page,
+  title: string,
+  steps: Array<[string, number]>,
+  difficulty?: string,
+) {
+  await page.goto('/quests/new');
+  await page.getByLabel('Quest name').fill(title);
+  for (const [step, minutes] of steps) {
+    await page.getByPlaceholder('e.g. Open the document').fill(step);
+    await page.getByLabel('Minutes for the new step').fill(String(minutes));
+    await page.getByPlaceholder('e.g. Open the document').press('Enter');
+  }
+  if (difficulty) {
+    await page.getByRole('button', { name: 'More details' }).click();
+    await page.getByRole('radio', { name: difficulty, exact: true }).click();
+  }
+  await page.getByRole('button', { name: 'Save quest' }).click();
+  await expect(page).toHaveURL(/\/quests\/[0-9a-f-]{36}$/);
+}
+
+/** Nothing (a reward pill or card) sits on top of this button's centre. */
+async function expectUncovered(page: Page, name: string) {
+  const button = page.getByRole('button', { name, exact: true });
+  await expect(button).toBeVisible();
+  const covered = await button.evaluate((el) => {
+    const r = el.getBoundingClientRect();
+    const top = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
+    return !(top && (el === top || el.contains(top)));
+  });
+  expect(covered, `${name} is covered`).toBe(false);
+}
+
+test('core loop on the real screens: finish a step, see the reward, spend the gold', async ({
+  page,
+}) => {
+  const errors = trackErrors(page);
+  await page.goto('/');
+  await expect(page.getByTestId('header-gold')).toHaveText(/^Gold:\s*0$/);
+  await addRealQuest(page, 'Water the plants', [['Fill the can', 2]]);
+  await page.getByRole('checkbox', { name: /Fill the can/ }).click();
+  await expect(page.getByTestId('reward-float').first()).toBeVisible();
+  await expect(page.getByTestId('reward-float').first()).toContainText('XP');
+  await expect(page.getByTestId('header-gold')).not.toHaveText(/^Gold:\s*0$/);
+  // The pill is short-lived.
+  await expect(page.getByTestId('reward-float')).toHaveCount(0, { timeout: 4000 });
+
+  // Spend it: round glasses cost 35 gold (the quest and first badges pay more than that).
+  await page.goto('/shop?tab=cosmetics&item=acc_glasses');
+  await page.getByRole('button', { name: 'Buy for 35 gold' }).click();
+  await page.getByRole('button', { name: 'Use' }).click();
+  await expect(page.getByTestId('avatar-badge').first()).toHaveAttribute(
+    'data-look',
+    /"accessory":"acc_glasses"/,
+  );
+  expect(errors).toEqual([]);
+});
+
+test('daily quests progress from real actions on Today', async ({ page }) => {
+  await start(page, '/');
+  // Fix today's goals so the test knows which ones the actions complete.
+  await page.evaluate(() => window.__qlGame.setDailyQuests(['steps_1', 'quest_1', 'focus_50']));
+  await addRealQuest(page, 'Reply to Sam', [['Write two lines', 3]]);
+  await page.getByRole('checkbox', { name: /Write two lines/ }).click();
+  await page
+    .getByRole('navigation', { name: 'Main' })
+    .getByRole('link', { name: 'Today', exact: true })
+    .click();
+  const goals = page.getByTestId('daily-quest');
+  await expect(goals).toHaveCount(3);
+  await expect(goals.nth(0)).toHaveAttribute('data-done', 'true');
+  await expect(goals.nth(1)).toHaveAttribute('data-done', 'true');
+  await expect(goals.nth(2)).toHaveAttribute('data-done', 'false');
+});
+
+test('focus mode Done shows reward effects without covering the next action', async ({ page }) => {
+  await page.goto('/');
+  await addRealQuest(page, 'Essay', [
+    ['Outline the essay', 15],
+    ['Write the intro', 20],
+  ]);
+  await page.getByRole('button', { name: 'Start', exact: true }).click();
+  await expect(page.getByRole('heading', { level: 1, name: 'Outline the essay' })).toBeVisible();
+  await expectUncovered(page, 'Done');
+  await page.getByRole('button', { name: 'Done', exact: true }).click();
+  await expect(page.getByTestId('reward-float').first()).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Step done!' })).toBeVisible();
+  await expectUncovered(page, 'Start next step');
+});
+
+test('a real boss quest celebrates its defeat', async ({ page }) => {
+  await page.goto('/');
+  await addRealQuest(page, 'Tax forms', [['Find the letter', 3]], 'S');
+  await page.getByRole('button', { name: 'Turn into a boss' }).click();
+  await page.getByRole('checkbox', { name: /Find the letter/ }).click();
+  // An S-rank finish also levels up; celebrations come one at a time.
+  const boss = page.getByRole('dialog', { name: 'Boss defeated!' });
+  for (let i = 0; i < 4; i++) {
+    await page.getByRole('button', { name: 'Nice!' }).first().waitFor();
+    if (await boss.isVisible()) break;
+    await page.getByRole('button', { name: 'Nice!' }).first().click();
+  }
+  await expect(boss).toBeVisible();
+});
