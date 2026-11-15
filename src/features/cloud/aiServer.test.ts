@@ -2,7 +2,9 @@ import { describe, expect, it } from 'vitest';
 import {
   buildPrompt,
   extractJson,
+  DEFAULT_MODEL,
   LIMITS,
+  messageParams,
   parseRequest,
   validateOutput,
   type AiRequest,
@@ -187,5 +189,46 @@ describe('edge function CORS', () => {
     expect(corsHeaders('https://questline.app', allowed)['access-control-allow-origin']).toBe(
       'https://questline.app',
     );
+  });
+});
+
+describe('Messages API parameters', () => {
+  const prompt = buildPrompt(breakdown);
+
+  it('defaults to the small fast model with structured output and low effort', () => {
+    const p = messageParams(prompt);
+    expect(DEFAULT_MODEL).toBe('claude-haiku-5-5');
+    expect(p).toEqual({
+      model: 'claude-haiku-5-5',
+      max_tokens: prompt.maxTokens,
+      system: prompt.system,
+      output_config: { effort: 'low', format: { type: 'json_schema', schema: prompt.schema } },
+    });
+    // Haiku has no server-side refusal fallback; never send sampling parameters.
+    expect(p).not.toHaveProperty('fallbacks');
+    expect(p).not.toHaveProperty('betas');
+    expect(p).not.toHaveProperty('temperature');
+  });
+
+  it('honours the model and effort overrides and adds the fallback only where supported', () => {
+    const opus = messageParams(prompt, { model: 'claude-opus-5-5', effort: 'medium' });
+    expect(opus.output_config.effort).toBe('medium');
+    expect(opus.fallbacks).toBe('default');
+    expect(opus.betas).toEqual(['server-side-fallback-2026-07-01']);
+    expect(
+      messageParams(prompt, { model: 'claude-opus-5-5', fallbacks: 'off' }),
+    ).not.toHaveProperty('fallbacks');
+    expect(messageParams(prompt, { effort: 'max' }).output_config.effort).toBe('low');
+    expect(messageParams(prompt, { model: '  ' }).model).toBe('claude-haiku-5-5');
+  });
+
+  it('leaves room for adaptive thinking in every token cap', () => {
+    for (const r of [
+      breakdown,
+      { action: 'classify', lang: 'en', steps: [{ title: 'a', guessMinutes: 1 }] },
+      { action: 'explain', lang: 'en', questTitle: 'x', reasons: [] },
+    ] as AiRequest[]) {
+      expect(buildPrompt(r).maxTokens).toBeGreaterThanOrEqual(1500);
+    }
   });
 });

@@ -2,7 +2,13 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
-import { updateNotificationPrefs, useNotificationPrefs, type NotificationPrefs } from '@/data';
+import {
+  updateNotificationPrefs,
+  updateSettings,
+  useNotificationPrefs,
+  useSettings,
+  type NotificationPrefs,
+} from '@/data';
 import { useFormat } from '@/i18n/useFormat';
 import { Button, buttonClass, Card, Input, Section, Select, showToast, Toggle } from '@/ui';
 import { aiStatusFrom } from './aiClient';
@@ -66,21 +72,33 @@ function AccountSettings() {
 function AiSettings() {
   const { t } = useTranslation('cloud');
   const { number } = useFormat();
-  const status = useCloud(aiStatusFrom);
+  const settings = useSettings();
+  const enabled = settings?.ai_enabled !== false;
+  const status = useCloud((s) => aiStatusFrom(s));
   const ai = useCloud((s) => s.ai);
+  const key = enabled ? status : 'off';
   return (
     <Section title={t('settings.ai_title')}>
-      <Card className="flex flex-col gap-2" data-testid="settings-ai">
-        <p className="font-bold text-text">
-          {status === 'ready' ? t('settings.ai_ready') : t(`ai.unavailable_${status}`)}
-        </p>
-        <p className="text-sm text-muted">
-          {status === 'ready' || status === 'limit_reached'
-            ? ai.limit > 0
-              ? t('settings.ai_usage', { used: number(ai.used), limit: number(ai.limit) })
-              : t('settings.ai_ready_hint')
-            : t(`ai.unavailable_${status}_hint`)}
-        </p>
+      <Card className="flex flex-col gap-4" data-testid="settings-ai">
+        <Toggle
+          label={t('settings.ai_switch')}
+          description={t('settings.ai_switch_hint')}
+          checked={enabled}
+          disabled={!settings}
+          onChange={(on) => void updateSettings({ ai_enabled: on })}
+        />
+        <div className="flex flex-col gap-1">
+          <p className="font-bold text-text">
+            {key === 'ready' ? t('settings.ai_ready') : t(`ai.unavailable_${key}`)}
+          </p>
+          <p className="text-sm text-muted">
+            {key === 'ready' || key === 'limit_reached'
+              ? ai.limit > 0
+                ? t('settings.ai_usage', { used: number(ai.used), limit: number(ai.limit) })
+                : t('settings.ai_ready_hint')
+              : t(`ai.unavailable_${key}_hint`)}
+          </p>
+        </div>
         <div>
           <Link to="/brain-dump" className={buttonClass('soft', 'sm')}>
             {t('settings.open_brain_dump')}

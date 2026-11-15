@@ -163,7 +163,7 @@ export function CalendarPage() {
           onClick={() => setDay(addDays(day, -1))}
         />
         <div className="min-w-0 text-center">
-          <p className="truncate font-bold text-text" data-testid="calendar-day">
+          <p className="font-bold text-text" data-testid="calendar-day">
             {date(day, 'long')}
           </p>
           {day !== today && (
@@ -256,7 +256,8 @@ export function CalendarPage() {
                 className="flex flex-wrap items-center gap-3"
               >
                 <Icon name="sparkle" className="shrink-0 text-xp" />
-                <div className="min-w-0 flex-1">
+                {/* Wide enough for the time range; the button wraps below on narrow screens. */}
+                <div className="min-w-[10rem] flex-1">
                   <p className="font-bold text-text">{range(g)}</p>
                   <p className="text-sm text-muted">
                     {t('calendar.minutes_free', {

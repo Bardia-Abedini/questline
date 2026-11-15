@@ -3,10 +3,11 @@
  * OWNER: Cloud.
  */
 import { useMemo } from 'react';
+import { useSettings } from '@/data';
 import { useTranslation } from 'react-i18next';
 import { aiStatusFrom, createRealAiClient } from './aiClient';
 import { createMockAiClient } from './aiMock';
-import { isAiMockEnabled, type AiClient } from './aiTypes';
+import { isAiMockEnabled, unavailableAiClient, type AiClient } from './aiTypes';
 import { AccountChoiceDialog } from './components/AccountChoiceDialog';
 import { SyncBadge } from './components/SyncBadge';
 import { useCloud } from './store';
@@ -36,17 +37,23 @@ export function SyncStatusSlot() {
 
 /**
  * The AI client. `status` is `guest` (not signed in), `offline`, `unconfigured` (no AI key on
- * the server), `limit_reached` (daily allowance used) or `ready`. With
+ * the server, or the player turned AI off in settings), `limit_reached` (daily allowance used) or `ready`. With
  * localStorage['ql.ai.mock'] === '1' it is the deterministic mock (tests). Check `available`
  * before showing AI buttons; every method throws AiUnavailableError when it is false.
  */
 export function useAi(): AiClient {
   const { i18n } = useTranslation();
-  const status = useCloud(aiStatusFrom);
+  const enabled = useSettings()?.ai_enabled !== false;
+  const status = useCloud((s) => aiStatusFrom(s, enabled));
   return useMemo(
-    () => (isAiMockEnabled() ? createMockAiClient() : createRealAiClient(status)),
+    () =>
+      !enabled
+        ? unavailableAiClient('unconfigured')
+        : isAiMockEnabled()
+          ? createMockAiClient()
+          : createRealAiClient(status),
     // Re-created on language change so replies follow the current language.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [status, i18n.language],
+    [enabled, status, i18n.language],
   );
 }

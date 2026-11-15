@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   appendLedgerEvent,
   createQuest,
@@ -236,6 +236,42 @@ describe('push and pull', () => {
     await Promise.all([a.syncNow(), b.syncNow()]);
     const pushedQuests = server.pushLog.filter((p) => p.table === 'quests').flatMap((p) => p.ids);
     expect(pushedQuests).toHaveLength(1);
+  });
+
+  it('falls back to polling and still converges when realtime is unavailable', async () => {
+    const remote = server.remote(U);
+    // Realtime never connects (no server, blocked websocket...).
+    remote.subscribe = (_onChange, onStatus) => {
+      onStatus(false);
+      return () => undefined;
+    };
+    const engine = new SyncEngine({ remote, isOnline: () => true, pollMs: 40 });
+    engine.start();
+    await new Promise((r) => setTimeout(r, 60));
+    expect(engine.getStatus().live).toBe(false);
+    // Another device writes to the server.
+    const other = server.remote(U);
+    await other.push(
+      'tags',
+      [
+        {
+          id: 'c0000000-0000-4000-8000-000000000001',
+          user_id: U,
+          created_at: new Date(T0).toISOString(),
+          updated_at: new Date(T0).toISOString(),
+          deleted_at: null,
+          name: 'from the other device',
+          color: null,
+        },
+      ],
+      new Date(T0).toISOString(),
+    );
+    await vi.waitFor(
+      async () =>
+        expect((await db.tags.toArray()).map((t) => t.name)).toEqual(['from the other device']),
+      { timeout: 2000, interval: 20 },
+    );
+    engine.stop();
   });
 
   it('notifies near real time and pulls the changed table', async () => {

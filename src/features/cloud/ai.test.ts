@@ -1,9 +1,44 @@
-import { renderHook } from '@testing-library/react';
-import { afterEach, describe, expect, it } from 'vitest';
+import { renderHook, waitFor } from '@testing-library/react';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { ensureLocalData, updateSettings } from '@/data';
 import { setLanguage } from '@/i18n';
+import { resetAll } from '@/test/db';
+import { createRealAiClient } from './aiClient';
 import { mockBrainDump, mockBreakDown, createMockAiClient, mockSuggestMeta } from './aiMock';
 import { AI_MOCK_FLAG, AiUnavailableError } from './aiTypes';
 import { useAi } from './slots';
+import { useCloud } from './store';
+
+describe('AI switched off in settings', () => {
+  beforeEach(async () => {
+    await resetAll();
+    await ensureLocalData({ language: 'en', timezone: 'UTC' });
+    await updateSettings({ ai_enabled: false });
+  });
+
+  it('useAi reports unavailable (unconfigured), even with the mock switch', async () => {
+    localStorage.setItem(AI_MOCK_FLAG, '1');
+    const { result } = renderHook(() => useAi());
+    await waitFor(() => expect(result.current.status).toBe('unconfigured'));
+    expect(result.current.available).toBe(false);
+    await expect(result.current.breakDown({ title: 'x' })).rejects.toBeInstanceOf(
+      AiUnavailableError,
+    );
+  });
+
+  it('never sends a request, even when the client thinks it is ready', async () => {
+    const fetchSpy = vi.spyOn(globalThis, 'fetch');
+    useCloud.setState({ auth: 'signed_in', online: true });
+    const client = createRealAiClient('ready');
+    const error = await client.brainDump({ text: 'milk' }).catch((e: unknown) => e);
+    expect(error).toBeInstanceOf(AiUnavailableError);
+    expect((error as AiUnavailableError).status).toBe('unconfigured');
+    expect(fetchSpy).not.toHaveBeenCalled();
+    fetchSpy.mockRestore();
+    useCloud.setState({ auth: 'unconfigured' });
+    await updateSettings({ ai_enabled: true });
+  });
+});
 
 afterEach(async () => {
   localStorage.removeItem(AI_MOCK_FLAG);

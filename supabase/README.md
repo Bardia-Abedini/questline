@@ -25,7 +25,7 @@ owner-facing setup guide (`docs/SETUP.md`) is written from it.
 - Every local write goes to the Dexie outbox (`recordChange`). `src/data/sync/engine.ts` pushes
   it in order through `sync_push`, pulls each table through `sync_pull` by the server cursor
   `(server_updated_at, id)`, and listens to Realtime (`postgres_changes`, filtered by
-  `user_id`) to pull a table as soon as it changes. Without Realtime it polls every 30 s.
+  `user_id`) to pull a table as soon as it changes. Without a live Realtime connection (not configured, blocked or dropped) it falls back automatically to polling every 20 s while the app is visible, plus an immediate sync on focus, reconnect and resume.
 - Last write wins per row by `updated_at`. The server moves edit times onto its own clock when
   a device's clock is off by more than 2 s, clamps future times, skips older and unchanged
   writes, and never lets `id`, `user_id` or `created_at` change.
@@ -70,6 +70,38 @@ E2E_SUPABASE=1 E2E_PORT=4185 npx playwright test e2e/cloud.spec.ts
 
 Binaries: `gotrue` from https://github.com/supabase/auth/releases (`auth-v*-x86.tar.gz`),
 PostgREST from https://github.com/PostgREST/postgrest/releases, Deno via `npm i deno`.
+
+### Checking the edge functions (fakes now, real keys later)
+
+`tests/functions/fake-services.mjs` stands in for the Anthropic API, Google OAuth/Calendar and a
+push service (it decrypts what it receives). `tests/functions/check-functions.mjs` signs up a
+fresh account and checks every function through the gateway: about 30 checks with the fakes.
+
+```bash
+node supabase/tests/functions/fake-services.mjs &          # http://127.0.0.1:54399
+FAKE=http://127.0.0.1:54399
+node supabase/scripts/generate-vapid-keys.mjs              # export the two printed values
+ANTHROPIC_API_KEY=fake ANTHROPIC_BASE_URL=$FAKE AI_DAILY_LIMIT=4 \
+GOOGLE_CLIENT_ID=fake GOOGLE_CLIENT_SECRET=fake GOOGLE_FAKE_BASE=$FAKE \
+VAPID_PUBLIC_KEY=... VAPID_PRIVATE_KEY=... VAPID_SUBJECT=mailto:test@example.com \
+PUSH_ALLOW_TEST_NOW=on SITE_URL=http://localhost:4185 \
+GOTRUE_BIN=... POSTGREST_BIN=... DENO_BIN=... node supabase/tests/local-stack/start.mjs --reset
+
+FAKE_URL=$FAKE DATABASE_URL=postgres://postgres@localhost:54322/postgres \
+  node supabase/tests/functions/check-functions.mjs
+# Browser tests with the real Quests and Focus screens, AI and calendar (both sizes):
+VITE_SUPABASE_URL=http://localhost:54321 VITE_SUPABASE_ANON_KEY=<anon key> \
+E2E_SUPABASE=1 E2E_FAKE_URL=$FAKE E2E_PORT=4185 npx playwright test e2e/cloud.spec.ts
+```
+
+After the real keys are set on a project, run the same script without `FAKE_URL`, pointed at
+it: `SUPABASE_URL=https://<ref>.supabase.co SUPABASE_ANON_KEY=<anon key>
+APP_ORIGIN=<an origin in ALLOWED_ORIGINS> CRON_SECRET=<secret> node
+supabase/tests/functions/check-functions.mjs`. It uses the real Claude API (a few requests),
+checks the calendar consent URL and push configuration, and prints what to try by hand
+(approving Google access, turning on notifications in Settings). Email confirmation must be
+off for its throwaway account, or set `SUPABASE_URL` to a staging project. `GOOGLE_FAKE_BASE`
+and `PUSH_ALLOW_TEST_NOW` are test-only and must never be set in production.
 
 ## Deploy
 
@@ -118,9 +150,9 @@ Nothing here is ever sent to the browser.
 | ---------- | ---------------------- | ------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | all        | `ALLOWED_ORIGINS`      | yes          | Comma list of app origins for CORS, e.g. `https://questline.app,http://localhost:5173`; `http://localhost:*` allows any port. Default `http://localhost:*`. |
 | `ai`       | `ANTHROPIC_API_KEY`    | for AI       | Without it the app shows "AI is not set up yet".                                                                                                            |
-| `ai`       | `ANTHROPIC_MODEL`      | no           | Default `claude-opus-5-5`.                                                                                                                                  |
+| `ai`       | `ANTHROPIC_MODEL`      | no           | Default `claude-haiku-5-5` (small, fast, cheapest per request; the tasks are short structured outputs). Any current model id works.                         |
 | `ai`       | `ANTHROPIC_EFFORT`     | no           | `low` (default), `medium` or `high`.                                                                                                                        |
-| `ai`       | `ANTHROPIC_FALLBACKS`  | no           | `on` (default): server-side refusal fallback on models that support it; `off` to disable.                                                                   |
+| `ai`       | `ANTHROPIC_FALLBACKS`  | no           | `on` (default): server-side refusal fallback, sent only for models that support it (Opus 5.x, Fable 5.x, Sonnet 5.5; not Haiku); `off` to disable.          |
 | `ai`       | `AI_DAILY_LIMIT`       | no           | Requests per player per UTC day. Default 50.                                                                                                                |
 | `calendar` | `GOOGLE_CLIENT_ID`     | for calendar | Google OAuth client (type "Web application").                                                                                                               |
 | `calendar` | `GOOGLE_CLIENT_SECRET` | for calendar |                                                                                                                                                             |

@@ -229,7 +229,7 @@ export function buildPrompt(req: AiRequest): Prompt {
           required: ['priority', 'difficulty', 'guessMinutes'],
           additionalProperties: false,
         },
-        maxTokens: 1000,
+        maxTokens: 2000,
       };
     case 'classify':
       return {
@@ -243,7 +243,7 @@ export function buildPrompt(req: AiRequest): Prompt {
           required: ['quick'],
           additionalProperties: false,
         },
-        maxTokens: 1000,
+        maxTokens: 2000,
       };
     case 'brain_dump':
       return {
@@ -282,7 +282,7 @@ export function buildPrompt(req: AiRequest): Prompt {
           required: ['line'],
           additionalProperties: false,
         },
-        maxTokens: 500,
+        maxTokens: 1500,
       };
   }
 }
@@ -402,4 +402,51 @@ export function extractJson(textReply: string): unknown {
   } catch {
     return null;
   }
+}
+
+/* ------------------------------------------------------------ API request */
+
+/**
+ * Default model: the small, fast tier. The tasks are short structured outputs and the owner
+ * pays per request. Override with ANTHROPIC_MODEL.
+ */
+export const DEFAULT_MODEL = 'claude-haiku-5-5';
+export type Effort = 'low' | 'medium' | 'high';
+
+/** Models that accept the server-side refusal fallback (Haiku does not). */
+const FALLBACK_MODELS = /^claude-(opus-5|fable-5|sonnet-5-5)/;
+
+/**
+ * Messages API parameters for a prompt. Structured output via `output_config.format` and
+ * `output_config.effort` work on every current model including Haiku 5.5. No sampling
+ * parameters and no prefill (both rejected by current models). Thinking stays adaptive (the
+ * default); its tokens count toward max_tokens, so the caps above leave room for it.
+ */
+export function messageParams(
+  prompt: Prompt,
+  options: { model?: string; effort?: string; fallbacks?: string } = {},
+): {
+  model: string;
+  max_tokens: number;
+  system: string;
+  output_config: {
+    effort: Effort;
+    format: { type: 'json_schema'; schema: Record<string, unknown> };
+  };
+  betas?: string[];
+  fallbacks?: 'default';
+} {
+  const model = options.model?.trim() || DEFAULT_MODEL;
+  const effort: Effort =
+    options.effort === 'medium' || options.effort === 'high' ? options.effort : 'low';
+  const useFallback = FALLBACK_MODELS.test(model) && options.fallbacks !== 'off';
+  return {
+    model,
+    max_tokens: prompt.maxTokens,
+    system: prompt.system,
+    output_config: { effort, format: { type: 'json_schema', schema: prompt.schema } },
+    ...(useFallback
+      ? { betas: ['server-side-fallback-2026-07-01'], fallbacks: 'default' as const }
+      : {}),
+  };
 }
