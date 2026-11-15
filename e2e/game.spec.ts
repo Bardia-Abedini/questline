@@ -11,6 +11,7 @@ interface Hooks {
   grant(gold: number, xp?: number): Promise<void>;
   finishQuest(o?: { difficulty?: string; boss?: boolean }): Promise<void>;
   setDailyQuests(keys: string[]): Promise<void>;
+  emit(name: string, payload: unknown): void;
 }
 declare global {
   interface Window {
