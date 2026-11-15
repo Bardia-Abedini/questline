@@ -173,7 +173,8 @@ export function PetHedgehog() {
         <circle cx="35" cy="26" r="3" fill={PALETTE.peach} {...inkRoom} strokeWidth="1.2" />
         <ellipse cx="40" cy="36" rx="2.6" ry="1.6" fill={PALETTE.rose} opacity="0.7" />
         <g className="qa-blink">
-          <ellipse cx="44" cy="30" rx="1.4" ry="1.8" fill={INK} />
+          <ellipse cx="45" cy="31" rx="2" ry="2.4" fill={INK} />
+          <circle cx="45.7" cy="30.2" r="0.7" fill="#fff" />
         </g>
         <circle cx="53.5" cy="34" r="1.7" fill={INK} />
         <path
