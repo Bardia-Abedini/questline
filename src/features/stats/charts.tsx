@@ -189,7 +189,10 @@ export function ColumnChart({
   );
 }
 
-/** Horizontal bars for a few named categories (parts of the day, weekdays). */
+/**
+ * Horizontal bars for a few named categories (parts of the day, weekdays). Plain HTML, so
+ * labels never collide and the bars grow from the start edge in both reading directions.
+ */
 export function BarList({
   data,
   tone,
@@ -202,58 +205,26 @@ export function BarList({
   valueOf: (v: number) => string;
 }) {
   const colors = useChartColors();
-  const rtl = useRtl();
-  const { number } = useFormat();
-  const height = Math.max(120, data.length * 32 + 16);
+  const max = Math.max(1, ...data.map((d) => d.value));
   return (
-    <ResponsiveContainer width="100%" height={height}>
-      <BarChart
-        data={data}
-        layout="vertical"
-        margin={{ top: 0, right: 8, left: 8, bottom: 0 }}
-        accessibilityLayer={false}
-      >
-        <CartesianGrid horizontal={false} stroke={colors.grid} strokeWidth={1} />
-        <XAxis
-          type="number"
-          reversed={rtl}
-          allowDecimals={false}
-          tickFormatter={(v: number) => number(v)}
-          tick={{ ...AXIS_FONT, fill: colors.axis }}
-          tickLine={false}
-          axisLine={false}
-        />
-        <YAxis
-          type="category"
-          dataKey="key"
-          orientation={rtl ? 'right' : 'left'}
-          tickFormatter={labelOf}
-          tick={{ ...AXIS_FONT, fill: colors.axis }}
-          tickLine={false}
-          axisLine={{ stroke: colors.grid }}
-          width={96}
-        />
-        <Tooltip
-          cursor={{ fill: colors.grid, opacity: 0.35 }}
-          content={(p) => (
-            <TooltipBox
-              active={p.active}
-              payload={p.payload}
-              label={p.label}
-              labelOf={labelOf}
-              valueOf={valueOf}
-            />
-          )}
-        />
-        <Bar
-          dataKey="value"
-          fill={colors[tone]}
-          radius={rtl ? [4, 0, 0, 4] : [0, 4, 4, 0]}
-          maxBarSize={20}
-          isAnimationActive={false}
-        />
-      </BarChart>
-    </ResponsiveContainer>
+    <ul className="flex flex-col gap-1.5">
+      {data.map((d) => (
+        <li key={d.key} className="flex min-w-0 items-center gap-2 text-sm">
+          <span className="w-28 shrink-0 truncate text-muted">{labelOf(d.key)}</span>
+          <span className="min-w-0 flex-1">
+            {d.value > 0 && (
+              <span
+                className="block h-3 rounded-e-[4px]"
+                style={{ inlineSize: `${(d.value / max) * 100}%`, backgroundColor: colors[tone] }}
+              />
+            )}
+          </span>
+          <span className="w-16 shrink-0 text-end font-bold text-text tabular-nums">
+            {d.value > 0 ? valueOf(d.value) : ''}
+          </span>
+        </li>
+      ))}
+    </ul>
   );
 }
 

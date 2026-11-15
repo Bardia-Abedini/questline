@@ -67,6 +67,7 @@ export type DateStyle =
   | 'long'
   | 'weekday'
   | 'weekdayShort'
+  | 'weekdayNarrow'
   | 'dayMonth'
   | 'dayShort'
   | 'monthYear';
@@ -77,6 +78,7 @@ const DATE_STYLES: Record<DateStyle, Intl.DateTimeFormatOptions> = {
   long: { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' },
   weekday: { weekday: 'long' },
   weekdayShort: { weekday: 'short' },
+  weekdayNarrow: { weekday: 'narrow' },
   dayMonth: { month: 'long', day: 'numeric' },
   dayShort: { month: 'short', day: 'numeric' },
   monthYear: { month: 'long', year: 'numeric' },

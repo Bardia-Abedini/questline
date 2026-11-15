@@ -112,7 +112,9 @@ function StatsBody({ stats }: { stats: Stats }) {
   const dayLabel = (key: string) =>
     stats.unit === 'week' ? t('table.week') + ' ' + f.date(key, 'dayShort') : f.date(key, 'medium');
   const tick = (key: string) =>
-    stats.range === '7d' ? f.date(key, 'weekdayShort') : f.date(key, 'dayShort');
+    stats.range === '7d'
+      ? f.date(key, f.lang === 'fa' ? 'weekdayNarrow' : 'weekdayShort')
+      : f.date(key, 'dayShort');
   const minutes = (ms: number) => Math.round(ms / 60_000);
 
   const focus: SeriesPoint[] = stats.buckets.map((b) => ({
