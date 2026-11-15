@@ -86,14 +86,14 @@ function FloatPill({ f }: { f: FloatFx }) {
         {f.xp > 0 && (
           <span aria-hidden className="inline-flex items-center gap-1 text-xp">
             <Icon name="sparkle" filled size={18} />
-            <span>+{number(f.xp)}</span>
+            <span>{t('effects.plus', { n: number(f.xp) })}</span>
             <span>{t('effects.xp_unit')}</span>
           </span>
         )}
         {f.gold > 0 && (
           <span aria-hidden className="inline-flex items-center gap-1 text-gold-text">
             <Icon name="coin" size={18} className="text-gold" />
-            <span>+{number(f.gold)}</span>
+            <span>{t('effects.plus', { n: number(f.gold) })}</span>
             <span>{t('effects.gold_unit')}</span>
           </span>
         )}
@@ -117,7 +117,7 @@ function NoteCard({ note }: { note: NoteFx }) {
   useEffect(() => {
     const timer = window.setTimeout(() => fx.dismissNote(note.id), 5000);
     return () => window.clearTimeout(timer);
-  }, [note]);
+  }, [note.id]);
 
   let art: React.ReactNode = null;
   let title = '';
@@ -359,11 +359,15 @@ export function RewardEffects() {
   });
   useAppEvent('gold.spent', () => feedback('purchase', true));
 
+  const inFocus = useLocation().pathname.startsWith(PATHS.focus);
+  if (inFocus) return <FocusStrip />;
+
   const celebration = celebrations[0];
   if (floats.length === 0 && notes.length === 0 && !celebration) return null;
 
   const top = 'top-[calc(var(--ql-header-h)+env(safe-area-inset-top)+0.5rem)]';
-  // Two layers, so the pill fading out never moves the cards (no jump).
+  // Two layers, so the pill fading out never moves the cards (no jump). At most
+  // MAX_VISIBLE_NOTES notes show at once; the rest wait their turn.
   return createPortal(
     <div aria-live="polite" data-testid="reward-effects">
       <div
@@ -383,10 +387,107 @@ export function RewardEffects() {
         )}
       >
         {celebration && <CelebrationCard key={celebration.id} c={celebration} />}
-        {notes.map((n) => (
+        {notes.slice(0, MAX_VISIBLE_NOTES).map((n) => (
           <NoteCard key={n.id} note={n} />
         ))}
       </div>
+    </div>,
+    document.body,
+  );
+}
+
+const MAX_VISIBLE_NOTES = 2;
+const STRIP_MS = 2400;
+
+type StripEntry = {
+  key: string;
+  icon: 'sparkle' | 'coin' | 'star' | 'sun' | 'sword';
+  text: string;
+  consume: () => void;
+};
+
+/**
+ * Focus mode: one small line at a time in the top bar, between the back and sound buttons,
+ * so it never covers the timer, the headings or the buttons. Everything queues and plays
+ * one after another; level-up and boss cards wait until the player leaves focus mode.
+ */
+function FocusStrip() {
+  const { t, tx } = useGameT();
+  const { number, lang } = useFormat();
+  const floats = useFx((s) => s.floats);
+  const notes = useFx((s) => s.notes);
+  const celebrations = useFx((s) => s.celebrations);
+  const [shown] = useState(() => new Set<string>());
+  const [, setTick] = useState(0);
+
+  // Focus's own screens show the XP and gold of each step and session, so the +XP/+gold
+  // pills are dropped here rather than repeated (the header bar still pulses outside).
+  useEffect(() => {
+    for (const f of floats) fx.dismissFloat(f.id);
+  }, [floats]);
+
+  const entries: StripEntry[] = [];
+  for (const c of celebrations) {
+    entries.push({
+      key: `c${c.id}`,
+      icon: c.kind === 'boss' ? 'sword' : 'star',
+      text:
+        c.kind === 'boss'
+          ? t('effects.boss_title')
+          : t('effects.level_up', { level: number(c.level) }),
+      consume: () => {}, // the full card shows after focus mode
+    });
+  }
+  for (const n of notes) {
+    let text = '';
+    let icon: StripEntry['icon'] = 'star';
+    if (n.kind === 'achievement') {
+      text = `${t('effects.achievement_title')}: ${n.achievementIds
+        .slice(0, 2)
+        .map((id) => tx(`achievements.${id}.name`))
+        .join(lang === 'fa' ? '، ' : ', ')}${n.achievementIds.length > 2 ? '…' : ''}`;
+    } else if (n.kind === 'loot_gold') {
+      icon = 'coin';
+      text = `${t('effects.loot_gold_title')} ${t('effects.loot_gold_body', { gold: number(n.amount) })}`;
+    } else if (n.kind === 'loot_item') {
+      text = t('effects.loot_item_title');
+    } else if (n.kind === 'daily') {
+      icon = 'sun';
+      text = t('effects.daily_done', { goal: tx(`daily.quests.${n.questKey}`) });
+    } else {
+      text = t('rewards.redeemed_title');
+    }
+    entries.push({ key: `n${n.id}`, icon, text, consume: () => fx.dismissNote(n.id) });
+  }
+  const current = entries.find((e) => !shown.has(e.key));
+
+  useEffect(() => {
+    if (!current) return;
+    const timer = window.setTimeout(() => {
+      shown.add(current.key);
+      current.consume();
+      setTick((x) => x + 1);
+    }, STRIP_MS);
+    return () => window.clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- keyed on the entry shown
+  }, [current?.key]);
+
+  if (!current) return null;
+  return createPortal(
+    <div
+      aria-live="polite"
+      data-testid="reward-effects"
+      className="pointer-events-none fixed inset-x-14 top-[calc(env(safe-area-inset-top)+0.75rem)] z-[55] flex justify-center"
+    >
+      <p
+        key={current.key}
+        role="status"
+        data-testid="focus-reward-note"
+        className="qg-pop flex h-9 max-w-full items-center gap-1.5 truncate rounded-full border border-gold/40 bg-surface/95 px-3 text-sm font-bold text-text shadow-md"
+      >
+        <Icon name={current.icon} size={16} filled className="shrink-0 text-gold" />
+        <span className="truncate">{current.text}</span>
+      </p>
     </div>,
     document.body,
   );

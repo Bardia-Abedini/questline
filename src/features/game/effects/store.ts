@@ -87,7 +87,8 @@ export const fx = {
         return prev.id;
       }
     }
-    useFx.setState({ notes: [...notes, { ...input, id } as NoteFx].slice(-3) });
+    // Queued, not dropped: the view shows a few at a time. Capped so it cannot grow forever.
+    useFx.setState({ notes: [...notes, { ...input, id } as NoteFx].slice(-8) });
     return id;
   },
   celebrate(input: CelebrationInput): number {

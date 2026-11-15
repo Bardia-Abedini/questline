@@ -324,3 +324,119 @@ test('a real boss quest celebrates its defeat', async ({ page }) => {
   }
   await expect(boss).toBeVisible();
 });
+
+/* ------------------------------------------------------------ focus mode stays clear */
+
+const FOCUS = {
+  en: { keep: 'Keep going', done: 'Done', next: 'Start next step' },
+  fa: { keep: 'ادامه می‌دهم', done: 'تمام شد', next: 'شروع قدم بعدی' },
+} as const;
+
+/** The reward note never overlaps the timer, any heading or any button on the screen. */
+async function expectNoteClear(page: Page, screen: string) {
+  const note = page.getByTestId('focus-reward-note');
+  await expect(note, `note on ${screen}`).toBeVisible();
+  const overlaps = await page.evaluate(() => {
+    const n = document.querySelector('[data-testid="focus-reward-note"]')!.getBoundingClientRect();
+    const hit = (r: DOMRect) =>
+      r.width > 0 &&
+      r.height > 0 &&
+      r.left < n.right &&
+      r.right > n.left &&
+      r.top < n.bottom &&
+      r.bottom > n.top;
+    const targets = [
+      ...document.querySelectorAll(
+        'main h1, main h2, main button, main a, main [role="timer"], [data-testid="focus-timer"], main svg',
+      ),
+    ];
+    return targets
+      .filter((el) => !el.closest('[data-testid="reward-effects"]'))
+      .filter((el) => hit(el.getBoundingClientRect()))
+      .map((el) => `${el.tagName} ${el.textContent?.slice(0, 30) ?? ''}`);
+  });
+  expect(overlaps, `overlaps on ${screen}`).toEqual([]);
+  // One small note at a time, no cards over focus mode.
+  await expect(page.getByTestId('focus-reward-note')).toHaveCount(1);
+  await expect(page.getByTestId(/^celebration-/)).toHaveCount(0);
+  await page.screenshot({ path: test.info().outputPath(`${screen.replace(/\W+/g, '-')}.png`) });
+}
+
+for (const lang of ['en', 'fa'] as const) {
+  test(`focus mode keeps the timer, headings and buttons clear (${lang})`, async ({
+    page,
+  }, info) => {
+    test.skip(info.project.name !== 'phone', 'phone layout is the tight one');
+    const L = FOCUS[lang];
+    await page.context().addInitScript((lang) => {
+      localStorage.setItem('ql.focus.e2e', '1');
+      localStorage.setItem('ql.game.testHooks', '1');
+      if (lang === 'fa' && !sessionStorage.getItem('ql.fa')) {
+        sessionStorage.setItem('ql.fa', '1');
+        localStorage.setItem('ql:prefs', JSON.stringify({ language: 'fa' }));
+      }
+    }, lang);
+    await page.clock.install();
+    await page.goto('/');
+    await page.waitForFunction(() => !!window.__qlGame && !!(window as never)['__qlFocus']);
+    const { stepIds } = (await page.evaluate(() =>
+      (
+        window as unknown as { __qlFocus: { seedQuest(i: unknown): Promise<unknown> } }
+      ).__qlFocus.seedQuest({
+        title: 'Essay',
+        difficulty: 'C',
+        steps: [
+          { title: 'Outline', guessMinutes: 10 },
+          { title: 'Intro', guessMinutes: 15 },
+        ],
+      }),
+    )) as { stepIds: string[] };
+    await page.goto(`/focus?step=${stepIds[0]}`);
+    await expect(page.getByTestId('focus-timer')).toBeVisible();
+
+    // A queue of several rewards at once: a level-up, badges, a lucky find, a daily quest.
+    const burst = () =>
+      page.evaluate(async () => {
+        const g = window.__qlGame;
+        await g.grant(0, 150);
+        g.emit('loot.dropped', { kind: 'gold', amount: 5, stepId: 'x' });
+        g.emit('achievement.unlocked', { achievementId: 'first_step' });
+        g.emit('achievement.unlocked', { achievementId: 'quick_10' });
+      });
+    await burst();
+    await expectNoteClear(page, 'timer');
+
+    await page.clock.fastForward('25:05');
+    await expect(
+      page
+        .getByRole('heading', { level: 2 })
+        .or(page.getByRole('heading', { level: 1 }))
+        .first(),
+    ).toBeVisible();
+    await burst();
+    await expectNoteClear(page, "time's up");
+
+    await page.getByRole('button', { name: L.keep }).click();
+    await page.clock.fastForward('01:00');
+    await page.getByRole('button', { name: L.done, exact: true }).click();
+    await expect(page.getByRole('button', { name: L.next })).toBeVisible();
+    await burst();
+    await expectNoteClear(page, 'step done');
+
+    await page.getByRole('button', { name: L.next }).click();
+    await page.clock.fastForward('01:00');
+    await page.getByRole('button', { name: L.done, exact: true }).click();
+    await expect(page.getByTestId('focus-timer')).toHaveCount(0);
+    await burst();
+    await expectNoteClear(page, 'quest finish');
+
+    // Notes play one after another (never more than one) and then go away by themselves.
+    const note = page.getByTestId('focus-reward-note');
+    for (let i = 0; i < 20 && (await note.count()) > 0; i++) {
+      expect(await note.count()).toBeLessThanOrEqual(1);
+      await page.clock.fastForward('00:03');
+      await page.waitForTimeout(50);
+    }
+    await expect(note).toHaveCount(0);
+  });
+}
