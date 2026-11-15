@@ -25,7 +25,7 @@ owner-facing setup guide (`docs/SETUP.md`) is written from it.
 - Every local write goes to the Dexie outbox (`recordChange`). `src/data/sync/engine.ts` pushes
   it in order through `sync_push`, pulls each table through `sync_pull` by the server cursor
   `(server_updated_at, id)`, and listens to Realtime (`postgres_changes`, filtered by
-  `user_id`) to pull a table as soon as it changes. Without Realtime it polls every 30 s.
+  `user_id`) to pull a table as soon as it changes. Without a live Realtime connection (not configured, blocked or dropped) it falls back automatically to polling every 20 s while the app is visible, plus an immediate sync on focus, reconnect and resume.
 - Last write wins per row by `updated_at`. The server moves edit times onto its own clock when
   a device's clock is off by more than 2 s, clamps future times, skips older and unchanged
   writes, and never lets `id`, `user_id` or `created_at` change.
