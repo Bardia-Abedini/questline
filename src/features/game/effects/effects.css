@@ -1,0 +1,88 @@
+/* Reward effects. Short, soft and never in the way: everything here is pointer-events none
+   except the card buttons. data-motion="reduce" (global) stops the motion. */
+
+.qg-float {
+  animation: qg-float 1.9s var(--ql-ease) both;
+}
+@keyframes qg-float {
+  0% {
+    opacity: 0;
+    transform: translateY(10px) scale(0.9);
+  }
+  12% {
+    opacity: 1;
+    transform: translateY(0) scale(1.04);
+  }
+  20% {
+    transform: translateY(0) scale(1);
+  }
+  80% {
+    opacity: 1;
+    transform: translateY(-6px);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-18px);
+  }
+}
+:root[data-motion='reduce'] .qg-float {
+  animation: none;
+}
+
+.qg-pop {
+  animation: qg-pop 420ms var(--ql-ease) both;
+}
+@keyframes qg-pop {
+  0% {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.92);
+  }
+  60% {
+    opacity: 1;
+    transform: translateY(0) scale(1.03);
+  }
+  100% {
+    transform: none;
+  }
+}
+
+.qg-bar-fill {
+  transition: inline-size 900ms var(--ql-ease);
+}
+
+.qg-confetti {
+  position: absolute;
+  inset-block-start: 40%;
+  inset-inline-start: 50%;
+  inline-size: 8px;
+  block-size: 12px;
+  border-radius: 3px;
+  opacity: 0;
+  animation: qg-confetti 1.2s var(--ql-ease) forwards;
+}
+@keyframes qg-confetti {
+  0% {
+    opacity: 1;
+    transform: translate(0, 0) rotate(0deg);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(var(--qg-dx), var(--qg-dy)) rotate(var(--qg-rot));
+  }
+}
+:root[data-motion='reduce'] .qg-confetti {
+  display: none;
+}
+
+.qg-glow {
+  animation: qg-glow 1.6s ease-in-out 2;
+}
+@keyframes qg-glow {
+  0%,
+  100% {
+    filter: drop-shadow(0 0 0 transparent);
+  }
+  50% {
+    filter: drop-shadow(0 0 10px var(--ql-gold));
+  }
+}
