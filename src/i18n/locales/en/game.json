@@ -192,6 +192,8 @@
     "region": "Rewards",
     "xp": "+{{xp}} XP",
     "gold": "+{{gold}} gold",
+    "xp_unit": "XP",
+    "gold_unit": "gold",
     "level_up": "Level {{level}}!",
     "level_up_body": "You reached level {{level}}.",
     "level_gift": "Gift: {{gold}} gold",

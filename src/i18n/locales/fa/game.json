@@ -192,6 +192,8 @@
     "region": "جایزه‌ها",
     "xp": "+{{xp}} تجربه",
     "gold": "+{{gold}} سکه",
+    "xp_unit": "تجربه",
+    "gold_unit": "سکه",
     "level_up": "سطح {{level}}!",
     "level_up_body": "به سطح {{level}} رسیدی.",
     "level_gift": "هدیه: {{gold}} سکه",

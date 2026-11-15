@@ -71,17 +71,30 @@ function FloatPill({ f }: { f: FloatFx }) {
       className="qg-float pointer-events-none flex flex-col items-center gap-1.5 rounded-full border border-xp/30 bg-surface/95 px-4 py-2 shadow-lg"
       data-testid="reward-float"
     >
-      <div className="flex items-center gap-3 text-base font-extrabold">
+      {/* Amount and unit are separate boxes (spaced by the gap), so this pill never repeats
+          the exact text of a screen's own reward summary; the full phrase is the label. */}
+      <div
+        role="img"
+        aria-label={[
+          f.xp > 0 ? t('effects.xp', { xp: number(f.xp) }) : '',
+          f.gold > 0 ? t('effects.gold', { gold: number(f.gold) }) : '',
+        ]
+          .filter(Boolean)
+          .join(' · ')}
+        className="flex items-center gap-3 text-base font-extrabold"
+      >
         {f.xp > 0 && (
-          <span className="inline-flex items-center gap-1 text-xp">
+          <span aria-hidden className="inline-flex items-center gap-1 text-xp">
             <Icon name="sparkle" filled size={18} />
-            {t('effects.xp', { xp: number(f.xp) })}
+            <span>+{number(f.xp)}</span>
+            <span>{t('effects.xp_unit')}</span>
           </span>
         )}
         {f.gold > 0 && (
-          <span className="inline-flex items-center gap-1 text-gold-text">
+          <span aria-hidden className="inline-flex items-center gap-1 text-gold-text">
             <Icon name="coin" size={18} className="text-gold" />
-            {t('effects.gold', { gold: number(f.gold) })}
+            <span>+{number(f.gold)}</span>
+            <span>{t('effects.gold_unit')}</span>
           </span>
         )}
       </div>
