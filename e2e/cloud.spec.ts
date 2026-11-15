@@ -175,6 +175,43 @@ test.describe('guest mode', () => {
     expect(errors).toEqual([]);
   });
 
+  test('clicking a Focus notification brings the app to the focus session', async ({
+    page,
+    context,
+    browserName,
+  }) => {
+    test.skip(browserName !== 'chromium', 'service worker evaluation is Chromium-only');
+    await context.grantPermissions(['notifications']);
+    await page.goto('/');
+    await page.evaluate(() => navigator.serviceWorker.ready.then(() => undefined));
+    // Controlled by the generated service worker (which imports public/push-sw.js) after a reload.
+    await page.reload();
+    await expect.poll(() => page.evaluate(() => !!navigator.serviceWorker.controller)).toBe(true);
+    await page.goto('/settings');
+    const worker = context.serviceWorkers()[0] ?? (await context.waitForEvent('serviceworker'));
+    // The same notification Focus shows through the service worker on phones, then a click.
+    const result = await worker.evaluate(async () => {
+      // Service worker globals, typed loosely: e2e/ compiles with DOM types only.
+      const sw = self as unknown as {
+        registration: {
+          showNotification(title: string, options: object): Promise<void>;
+          getNotifications(filter: object): Promise<object[]>;
+        };
+        clients: { matchAll(o: object): Promise<{ url: string }[]> };
+        dispatchEvent(e: Event): boolean;
+      };
+      const NotificationEventCtor = (globalThis as Record<string, unknown>)
+        .NotificationEvent as new (type: string, init: object) => Event;
+      await sw.registration.showNotification('Time is up', { tag: 'ql-focus-end', body: 'x' });
+      const [n] = await sw.registration.getNotifications({ tag: 'ql-focus-end' });
+      if (!n) return 'no notification';
+      sw.dispatchEvent(new NotificationEventCtor('notificationclick', { notification: n }));
+      return 'clicked';
+    });
+    expect(result).toBe('clicked');
+    await expect(page).toHaveURL(/\/focus$/);
+  });
+
   test('Persian: cloud screens in RTL with no horizontal scroll', async ({ page }) => {
     await page.goto('/settings');
     await page.getByRole('radio', { name: 'فارسی' }).click();
