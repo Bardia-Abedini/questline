@@ -19,6 +19,17 @@ export default defineConfig({
   reporter: [['list']],
   use: {
     baseURL: `http://localhost:${PORT}`,
+    // First-run onboarding is skipped in every spec except the ones that test it
+    // (e2e/journey.spec.ts clears this with test.use({ storageState: ... })).
+    storageState: {
+      cookies: [],
+      origins: [
+        {
+          origin: `http://localhost:${PORT}`,
+          localStorage: [{ name: 'ql.onboarding.skip', value: '1' }],
+        },
+      ],
+    },
     trace: 'off',
     launchOptions: executablePath ? { executablePath } : {},
   },

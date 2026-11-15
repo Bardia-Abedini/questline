@@ -1,4 +1,7 @@
 import type { FeatureRoutes } from '@/app/routing';
+import { OnboardingPage } from './OnboardingPage';
 
-/** OWNER: Finish package. Onboarding screens are full screen (e.g. `welcome`). */
-export const routes: FeatureRoutes = {};
+/** OWNER: Finish package. The welcome screens are full screen. */
+export const routes: FeatureRoutes = {
+  fullscreen: [{ path: 'welcome', element: <OnboardingPage /> }],
+};
