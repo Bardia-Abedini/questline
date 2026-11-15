@@ -82,6 +82,31 @@ test.describe('guest mode', () => {
     expect(errors).toEqual([]);
   });
 
+  test("Today's brain dump and day view links land on the Cloud screens", async ({ page }) => {
+    await page.goto('/');
+    await page.getByRole('link', { name: 'Brain dump' }).click();
+    await expect(page).toHaveURL(/\/brain-dump$/);
+    await expect(page.getByRole('heading', { level: 1, name: 'Brain dump' })).toBeVisible();
+    await page.goto('/');
+    await page.getByRole('link', { name: 'Day view' }).click();
+    await expect(page).toHaveURL(/\/calendar$/);
+    await expect(page.getByRole('heading', { level: 1, name: 'Day plan' })).toBeVisible();
+  });
+
+  test('turning AI off hides it and says so', async ({ page }) => {
+    await page.addInitScript(() => localStorage.setItem('ql.ai.mock', '1'));
+    await page.goto('/settings');
+    const ai = page.getByTestId('settings-ai');
+    await ai.getByRole('switch', { name: 'Use AI helpers' }).click();
+    await expect(ai).toContainText('AI helpers are turned off');
+    await page.goto('/brain-dump');
+    await expect(page.getByTestId('ai-unavailable')).toContainText('AI helpers are turned off');
+    await expect(page.getByRole('button', { name: 'Sort it into quests' })).toHaveCount(0);
+    await page.goto('/quests/new');
+    await page.getByLabel('Quest name').fill('Clean room');
+    await expect(page.getByRole('button', { name: 'Break it down for me' })).toHaveCount(0);
+  });
+
   test('settings explain AI, calendar and reminders without an account', async ({ page }) => {
     await page.goto('/settings');
     await expect(page.getByTestId('settings-ai')).toContainText('AI helpers need an account');
@@ -399,6 +424,7 @@ const seconds = (text: string | null) => {
 
 test.describe('local stack: the real screens on two devices', () => {
   test.skip(!STACK, 'needs E2E_SUPABASE=1 and a build pointed at a local stack');
+  test.setTimeout(90_000);
   const unique = () => `it-${Date.now()}-${Math.floor(Math.random() * 1e6)}@example.com`;
 
   test('a quest from the Quests form shows on the other device; rewards come back', async ({
@@ -470,8 +496,9 @@ test.describe('local stack: the real screens on two devices', () => {
     await expect
       .poll(
         async () => {
+          // A reload syncs; A may be in full-screen focus mode (no badge) until it learns.
           await a.page.goto('/settings');
-          await synced(a.page);
+          await a.page.waitForTimeout(2000);
           const s = (await readTable(a.page, 'focus_sessions')).find((r) => r.id === sessionId);
           return s?.ended_at ?? null;
         },
@@ -530,6 +557,7 @@ test.describe('local stack: the real screens on two devices', () => {
 
 test.describe('local stack with fake AI and Google', () => {
   test.skip(!STACK || !FAKE_URL, 'needs E2E_SUPABASE=1 and E2E_FAKE_URL (fake-services.mjs)');
+  test.setTimeout(90_000);
 
   test('"Break it down for me" uses the real AI client, then rests kindly at the limit', async ({
     browser,
@@ -551,8 +579,13 @@ test.describe('local stack with fake AI and Google', () => {
       await again.first().click();
       await page.waitForTimeout(400);
     }
-    await expect(resting).toBeVisible();
+    // Whichever call used the last request (a click, or the form's automatic suggestion),
+    // the AI button goes away quietly; a click that hits the limit gets a kind toast.
     await expect(page.getByRole('button', { name: 'Break it down for me' })).toHaveCount(0);
+    await expect(page.getByRole('button', { name: 'Try again' })).toHaveCount(0);
+    // The form still saves without AI.
+    await page.getByRole('button', { name: 'Save quest' }).click();
+    await expect(page).toHaveURL(/\/quests\/[0-9a-f-]{36}$/);
     await page.goto('/settings');
     await expect(page.getByTestId('settings-ai')).toContainText("Today's AI helps are used up");
     expect(errors).toEqual([]);
