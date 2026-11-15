@@ -15,6 +15,7 @@ import {
   db,
   distractionNotesRepo,
   focusSessionsRepo,
+  powerUpActivationsRepo,
   getDeviceId,
   getSettings,
   listSteps,
@@ -106,6 +107,20 @@ export async function startSession(
         ? (settings.break_minutes ?? DEFAULT_BREAK_MINUTES)
         : (settings.focus_minutes ?? DEFAULT_FOCUS_MINUTES);
     const minutes = clampMinutes(options.minutes ?? fallback, fallback);
+    // A double-XP potion drunk with no session open waits for the next focus session: claim
+    // it here, in the same transaction, so the session is doubled from its first moment and
+    // the potion is used exactly once (Game's own apply then finds nothing pending).
+    const potion =
+      kind === 'focus'
+        ? (
+            await powerUpActivationsRepo.list(
+              (a) =>
+                a.type === 'double_xp_potion' &&
+                a.target_type === 'focus_session' &&
+                a.target_id === null,
+            )
+          )[0]
+        : undefined;
     const session = await focusSessionsRepo.create({
       kind,
       quest_id: step.quest_id,
@@ -120,9 +135,10 @@ export async function startSession(
       focused_ms: 0,
       away_ms: 0,
       paused_ms: 0,
-      double_xp: false,
+      double_xp: !!potion,
       device_id: deviceId,
     });
+    if (potion) await powerUpActivationsRepo.update(potion.id, { target_id: session.id });
     if (kind === 'focus' && (await db.quests.get(step.quest_id))?.deleted_at === null) {
       await touchQuest(step.quest_id);
     }
