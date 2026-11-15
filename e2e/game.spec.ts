@@ -81,7 +81,12 @@ test('cosmetics: locked item shows its level; buy and equip changes the header a
   await start(page, '/shop?tab=cosmetics');
   await page.getByTestId('cosmetic-outfit_star_robe').click();
   await expect(page.getByTestId('locked-note')).toHaveText('Unlocks at level 10');
-  await page.keyboard.press('Escape');
+  // Close with the dialog's own button and wait until it is gone. (Escape raced the
+  // dialog's key listener, which is attached in an effect after the first paint; when it
+  // was lost the open dialog made the page inert and the next click waited until timeout.)
+  const preview = page.getByRole('dialog', { name: 'Stargazer robe' });
+  await preview.getByRole('button', { name: 'Close' }).click();
+  await expect(preview).toHaveCount(0);
 
   await page.getByTestId('cosmetic-hat_beanie').click();
   await expect(page.getByTestId('need-more')).toContainText('50 more gold');
