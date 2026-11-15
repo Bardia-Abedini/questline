@@ -71,6 +71,38 @@ E2E_SUPABASE=1 E2E_PORT=4185 npx playwright test e2e/cloud.spec.ts
 Binaries: `gotrue` from https://github.com/supabase/auth/releases (`auth-v*-x86.tar.gz`),
 PostgREST from https://github.com/PostgREST/postgrest/releases, Deno via `npm i deno`.
 
+### Checking the edge functions (fakes now, real keys later)
+
+`tests/functions/fake-services.mjs` stands in for the Anthropic API, Google OAuth/Calendar and a
+push service (it decrypts what it receives). `tests/functions/check-functions.mjs` signs up a
+fresh account and checks every function through the gateway: about 30 checks with the fakes.
+
+```bash
+node supabase/tests/functions/fake-services.mjs &          # http://127.0.0.1:54399
+FAKE=http://127.0.0.1:54399
+node supabase/scripts/generate-vapid-keys.mjs              # export the two printed values
+ANTHROPIC_API_KEY=fake ANTHROPIC_BASE_URL=$FAKE AI_DAILY_LIMIT=4 \
+GOOGLE_CLIENT_ID=fake GOOGLE_CLIENT_SECRET=fake GOOGLE_FAKE_BASE=$FAKE \
+VAPID_PUBLIC_KEY=... VAPID_PRIVATE_KEY=... VAPID_SUBJECT=mailto:test@example.com \
+PUSH_ALLOW_TEST_NOW=on SITE_URL=http://localhost:4185 \
+GOTRUE_BIN=... POSTGREST_BIN=... DENO_BIN=... node supabase/tests/local-stack/start.mjs --reset
+
+FAKE_URL=$FAKE DATABASE_URL=postgres://postgres@localhost:54322/postgres \
+  node supabase/tests/functions/check-functions.mjs
+# Browser tests with the real Quests and Focus screens, AI and calendar (both sizes):
+VITE_SUPABASE_URL=http://localhost:54321 VITE_SUPABASE_ANON_KEY=<anon key> \
+E2E_SUPABASE=1 E2E_FAKE_URL=$FAKE E2E_PORT=4185 npx playwright test e2e/cloud.spec.ts
+```
+
+After the real keys are set on a project, run the same script without `FAKE_URL`, pointed at
+it: `SUPABASE_URL=https://<ref>.supabase.co SUPABASE_ANON_KEY=<anon key>
+APP_ORIGIN=<an origin in ALLOWED_ORIGINS> CRON_SECRET=<secret> node
+supabase/tests/functions/check-functions.mjs`. It uses the real Claude API (a few requests),
+checks the calendar consent URL and push configuration, and prints what to try by hand
+(approving Google access, turning on notifications in Settings). Email confirmation must be
+off for its throwaway account, or set `SUPABASE_URL` to a staging project. `GOOGLE_FAKE_BASE`
+and `PUSH_ALLOW_TEST_NOW` are test-only and must never be set in production.
+
 ## Deploy
 
 ```bash
