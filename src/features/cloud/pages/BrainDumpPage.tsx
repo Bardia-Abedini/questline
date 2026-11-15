@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useNavigate } from 'react-router';
 import { PATHS } from '@/app/routing';
-import { createQuest, writeTransaction } from '@/data';
+import { createQuest, useSettings, writeTransaction } from '@/data';
 import type { Difficulty, Priority } from '@/domain/types';
 import { useFormat } from '@/i18n/useFormat';
 import { events } from '@/services';
@@ -32,7 +32,7 @@ interface Draft extends AiQuestSuggestion {
 
 let nextKey = 1;
 
-function Unavailable({ status }: { status: Exclude<AiStatus, 'ready'> }) {
+function Unavailable({ status }: { status: Exclude<AiStatus, 'ready'> | 'off' }) {
   const { t } = useTranslation('cloud');
   return (
     <Card tone="sunken" className="flex items-start gap-3" data-testid="ai-unavailable">
@@ -45,6 +45,11 @@ function Unavailable({ status }: { status: Exclude<AiStatus, 'ready'> }) {
             {t('ai.go_to_account')}
           </Link>
         )}
+        {status === 'off' && (
+          <Link to="/settings" className={`${buttonClass('soft', 'sm')} mt-2`}>
+            {t('ai.go_to_settings')}
+          </Link>
+        )}
       </div>
     </Card>
   );
@@ -54,6 +59,7 @@ export function BrainDumpPage() {
   const { t } = useTranslation('cloud');
   const { number } = useFormat();
   const ai = useAi();
+  const aiOff = useSettings()?.ai_enabled === false;
   const navigate = useNavigate();
   const [text, setText] = useState('');
   const [drafts, setDrafts] = useState<Draft[] | null>(null);
@@ -128,7 +134,9 @@ export function BrainDumpPage() {
     <Page title={t('brain_dump.title')} subtitle={t('brain_dump.subtitle')}>
       {drafts === null ? (
         <>
-          {!ai.available && <Unavailable status={ai.status as Exclude<AiStatus, 'ready'>} />}
+          {!ai.available && (
+            <Unavailable status={aiOff ? 'off' : (ai.status as Exclude<AiStatus, 'ready'>)} />
+          )}
           <Card className="flex flex-col gap-3">
             <Textarea
               label={t('brain_dump.label')}

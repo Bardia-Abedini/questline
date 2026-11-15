@@ -3,13 +3,19 @@
  * network and the server's last answer (configured? limit reached?).
  */
 import i18next from 'i18next';
-import { aiUsageRepo, clock, type AiRequestKind } from '@/data';
+import { aiUsageRepo, clock, getSingleton, type AiRequestKind } from '@/data';
 import { AiUnavailableError, type AiClient, type AiStatus } from './aiTypes';
 import { callFunction, FunctionError } from './functions';
 import { setCloud, useCloud, type CloudState } from './store';
 
 /** The client-visible status from the cloud state. */
-export function aiStatusFrom(state: Pick<CloudState, 'auth' | 'online' | 'ai'>): AiStatus {
+export function aiStatusFrom(
+  state: Pick<CloudState, 'auth' | 'online' | 'ai'>,
+  enabled = true,
+): AiStatus {
+  // Turned off in settings: reported as `unconfigured` (the contract has no "off" status);
+  // nothing is ever sent.
+  if (!enabled) return 'unconfigured';
   if (state.auth !== 'signed_in') return 'guest';
   if (!state.online) return 'offline';
   if (state.ai.status === 'unconfigured') return 'unconfigured';
@@ -54,8 +60,13 @@ function record(action: string, status: 'ok' | 'error' | 'limited') {
     .catch(() => undefined);
 }
 
+/** The player's AI switch (settings.ai_enabled; on unless turned off). */
+export async function aiEnabled(): Promise<boolean> {
+  return (await getSingleton('settings'))?.ai_enabled !== false;
+}
+
 async function call<T>(action: string, input: Record<string, unknown>): Promise<T> {
-  const status = aiStatusFrom(useCloud.getState());
+  const status = aiStatusFrom(useCloud.getState(), await aiEnabled());
   if (status !== 'ready') throw new AiUnavailableError(status);
   const lang = i18next.language === 'fa' ? 'fa' : 'en';
   try {
