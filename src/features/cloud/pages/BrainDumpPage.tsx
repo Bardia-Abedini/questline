@@ -180,8 +180,10 @@ export function BrainDumpPage() {
             {drafts.map((q, i) => (
               <Card as="li" key={q.key} className="flex flex-col gap-3">
                 <div className="flex items-end gap-2">
-                  <Input
+                  <Textarea
                     wrapperClassName="min-w-0 flex-1"
+                    rows={2}
+                    className="[field-sizing:content]"
                     label={t('brain_dump.quest_title', { n: number(i + 1) })}
                     value={q.title}
                     maxLength={LIMITS.title}
@@ -226,8 +228,10 @@ export function BrainDumpPage() {
                     </legend>
                     {q.steps.map((s, si) => (
                       <div key={si} className="flex items-end gap-2">
-                        <Input
+                        <Textarea
                           wrapperClassName="min-w-0 flex-1"
+                          rows={2}
+                          className="[field-sizing:content]"
                           label={t('brain_dump.step', {
                             n: number(si + 1),
                             minutes: number(s.guessMinutes),
