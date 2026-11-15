@@ -23,7 +23,7 @@ export function AchievementsPanel() {
     <div className="flex flex-col gap-3">
       <p className="font-bold text-muted" data-testid="achievements-summary">
         {t('achievements.summary', {
-          count: number(byId.size) as never,
+          n: number(byId.size),
           total: number(ACHIEVEMENTS.length),
         })}
       </p>

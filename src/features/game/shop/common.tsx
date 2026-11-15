@@ -14,9 +14,7 @@ export function NeedMore({ missing }: { missing: number }) {
     <p className="flex items-start gap-1.5 text-sm text-gold-text" data-testid="need-more">
       <Icon name="coin" size={16} className="mt-0.5 shrink-0 text-gold" />
       <span>
-        <span className="font-bold">
-          {t('shop.need_more', { count: number(missing) as never })}
-        </span>{' '}
+        <span className="font-bold">{t('shop.need_more', { n: number(missing) })}</span>{' '}
         <span className="text-muted">{t('shop.need_more_hint')}</span>
       </span>
     </p>
@@ -65,7 +63,7 @@ export function BuyButton({
           if (error instanceof InsufficientGoldError) {
             showToast({
               title: t('shop.need_more', {
-                count: number(error.needed - error.available) as never,
+                n: number(error.needed - error.available),
               }),
               description: t('shop.need_more_hint'),
               tone: 'gold',

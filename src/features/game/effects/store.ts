@@ -63,7 +63,7 @@ export const fx = {
       return last.id;
     }
     const id = nextId++;
-    useFx.setState({ floats: [...floats, { ...input, id, at: now }].slice(-3) });
+    useFx.setState({ floats: [...floats, { ...input, id, at: now }].slice(-1) });
     return id;
   },
   note(input: NoteInput): number {

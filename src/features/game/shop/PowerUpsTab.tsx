@@ -87,7 +87,7 @@ export function PowerUpsTab() {
               </div>
               <p className="text-sm text-muted">{tx(`powerups.${p.type}.description`)}</p>
               <p className="text-sm font-bold" data-testid="powerup-count">
-                {t('powerups.owned', { count: number(count) as never })}
+                {t('powerups.owned', { n: number(count) })}
               </p>
               {charmLeft !== null && charmLeft > 0 && (
                 <Chip tone="success" icon="sparkle" data-testid="powerup-active">

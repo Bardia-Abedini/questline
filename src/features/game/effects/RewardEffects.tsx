@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { useNavigate } from 'react-router';
+import { useLocation, useNavigate } from 'react-router';
 import { usePreferences } from '@/app/preferences/preferences';
 import { PATHS } from '@/app/routing';
 import { cottageTier, levelFromXp } from '@/domain/levels';
@@ -99,7 +99,7 @@ function FloatPill({ f }: { f: FloatFx }) {
 
 function NoteCard({ note }: { note: NoteFx }) {
   const { t, tx } = useGameT();
-  const { number } = useFormat();
+  const { number, lang } = useFormat();
   const navigate = useNavigate();
   useEffect(() => {
     const timer = window.setTimeout(() => fx.dismissNote(note.id), 5000);
@@ -116,10 +116,14 @@ function NoteCard({ note }: { note: NoteFx }) {
       art = first ? <Badge def={first} unlocked size={44} /> : null;
       title =
         note.achievementIds.length > 1
-          ? t('effects.achievements_many', { count: number(note.achievementIds.length) as never })
+          ? t('effects.achievements_several', { n: number(note.achievementIds.length) })
           : t('effects.achievement_title');
       body = t('effects.achievement_body', {
-        name: note.achievementIds.map((id) => tx(`achievements.${id}.name`)).join(', '),
+        name:
+          note.achievementIds
+            .slice(0, 2)
+            .map((id) => tx(`achievements.${id}.name`))
+            .join(lang === 'fa' ? '، ' : ', ') + (note.achievementIds.length > 2 ? '…' : ''),
         gold: number(note.gold),
       });
       link = `${PATHS.home}?tab=achievements`;
@@ -218,10 +222,12 @@ function CelebrationCard({ c }: { c: CelebrationFx }) {
   const { t, tx } = useGameT();
   const { number } = useFormat();
   const closeRef = useRef<HTMLButtonElement>(null);
+  // In focus mode the card stays small and brief so the timer and step stay in view.
+  const compact = useLocation().pathname.startsWith(PATHS.focus);
   useEffect(() => {
-    const timer = window.setTimeout(() => fx.dismissCelebration(c.id), 10_000);
+    const timer = window.setTimeout(() => fx.dismissCelebration(c.id), compact ? 3500 : 7000);
     return () => window.clearTimeout(timer);
-  }, [c.id]);
+  }, [c.id, compact]);
   const titleId = `qg-celebration-${c.id}`;
 
   const levels =
@@ -238,12 +244,12 @@ function CelebrationCard({ c }: { c: CelebrationFx }) {
       role="dialog"
       aria-modal="false"
       aria-labelledby={titleId}
-      className="qg-pop pointer-events-auto relative w-full rounded-xl border-2 border-gold/50 bg-surface p-5 text-center text-text shadow-lg"
+      className="qg-pop pointer-events-auto relative w-full rounded-xl border-2 border-gold/50 bg-surface p-4 text-center text-text shadow-lg"
       data-testid={`celebration-${c.kind}`}
     >
       <Confetti />
       <div className="relative flex flex-col items-center gap-2">
-        <span className="qg-glow grid size-14 place-items-center rounded-full bg-gold-soft text-gold">
+        <span className="qg-glow grid size-12 place-items-center rounded-full bg-gold-soft text-gold">
           <Icon name={c.kind === 'boss' ? 'sword' : 'star'} filled size={32} />
         </span>
         <h2 id={titleId} className="text-2xl font-semibold">
@@ -266,11 +272,11 @@ function CelebrationCard({ c }: { c: CelebrationFx }) {
                 {t('effects.unlocked_title', { title: tx(ti.nameKey) })}
               </p>
             ))}
-            {items.length > 0 && (
+            {!compact && items.length > 0 && (
               <div className="flex w-full flex-col items-center gap-1">
                 <p className="text-sm font-bold text-muted">{t('effects.unlocked_items')}</p>
                 <ul className="flex max-w-full flex-wrap justify-center gap-2">
-                  {items.slice(0, 6).map((item) => (
+                  {items.slice(0, 4).map((item) => (
                     <li key={item.id} className="flex w-16 flex-col items-center gap-0.5">
                       <span className="rounded-md bg-surface-2 p-1">
                         <ItemArt itemId={item.id} size={40} />
@@ -343,21 +349,31 @@ export function RewardEffects() {
   const celebration = celebrations[0];
   if (floats.length === 0 && notes.length === 0 && !celebration) return null;
 
+  const top = 'top-[calc(var(--ql-header-h)+env(safe-area-inset-top)+0.5rem)]';
+  // Two layers, so the pill fading out never moves the cards (no jump).
   return createPortal(
-    <div
-      className={cx(
-        'pointer-events-none fixed inset-x-0 top-[calc(var(--ql-header-h)+env(safe-area-inset-top)+0.5rem)] z-[55] mx-auto flex w-full max-w-sm flex-col items-center gap-2 px-4',
-      )}
-      aria-live="polite"
-      data-testid="reward-effects"
-    >
-      {floats.map((f) => (
-        <FloatPill key={f.id} f={f} />
-      ))}
-      {celebration && <CelebrationCard key={celebration.id} c={celebration} />}
-      {notes.map((n) => (
-        <NoteCard key={n.id} note={n} />
-      ))}
+    <div aria-live="polite" data-testid="reward-effects">
+      <div
+        className={cx(
+          'pointer-events-none fixed inset-x-0 z-[56] mx-auto flex w-full max-w-sm flex-col items-center gap-2 px-4',
+          top,
+        )}
+      >
+        {floats.map((f) => (
+          <FloatPill key={f.id} f={f} />
+        ))}
+      </div>
+      <div
+        className={cx(
+          'pointer-events-none fixed inset-x-0 z-[55] mx-auto mt-16 flex w-full max-w-sm flex-col items-center gap-2 px-4',
+          top,
+        )}
+      >
+        {celebration && <CelebrationCard key={celebration.id} c={celebration} />}
+        {notes.map((n) => (
+          <NoteCard key={n.id} note={n} />
+        ))}
+      </div>
     </div>,
     document.body,
   );
