@@ -61,14 +61,26 @@ function toDate(input: DateInput): Date {
   return new Date(localDateTimeToMs(input));
 }
 
-export type DateStyle = 'short' | 'medium' | 'long' | 'weekday' | 'dayMonth' | 'monthYear';
+export type DateStyle =
+  | 'short'
+  | 'medium'
+  | 'long'
+  | 'weekday'
+  | 'weekdayShort'
+  | 'weekdayNarrow'
+  | 'dayMonth'
+  | 'dayShort'
+  | 'monthYear';
 
 const DATE_STYLES: Record<DateStyle, Intl.DateTimeFormatOptions> = {
   short: { year: 'numeric', month: 'numeric', day: 'numeric' },
   medium: { year: 'numeric', month: 'short', day: 'numeric' },
   long: { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' },
   weekday: { weekday: 'long' },
+  weekdayShort: { weekday: 'short' },
+  weekdayNarrow: { weekday: 'narrow' },
   dayMonth: { month: 'long', day: 'numeric' },
+  dayShort: { month: 'short', day: 'numeric' },
   monthYear: { month: 'long', year: 'numeric' },
 };
 

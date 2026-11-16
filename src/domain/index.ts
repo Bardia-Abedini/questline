@@ -17,3 +17,4 @@ export * from './steps';
 export * from './quests';
 export * from './suggest';
 export * from './timer';
+export * from './jalali';

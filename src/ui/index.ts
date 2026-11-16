@@ -42,3 +42,4 @@ export {
 export { Spinner } from './Spinner';
 export { Page, Section, type PageProps } from './Page';
 export { isRtl } from './direction';
+export { DateField, type DateFieldProps } from './DateField';

@@ -1,7 +1,9 @@
+import { lazyPage } from '@/app/lazyPage';
 import type { FeatureRoutes } from '@/app/routing';
-import { SettingsPage } from './SettingsPage';
 
-/** OWNER: Finish package. */
+/** OWNER: Finish package. Loaded on first visit. */
 export const routes: FeatureRoutes = {
-  shell: [{ path: 'settings', element: <SettingsPage /> }],
+  shell: [
+    { path: 'settings', Component: lazyPage(() => import('./SettingsPage'), 'SettingsPage') },
+  ],
 };

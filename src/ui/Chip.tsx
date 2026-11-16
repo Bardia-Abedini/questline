@@ -101,7 +101,7 @@ export function ToggleChip({
       disabled={disabled}
       onClick={() => onChange(!selected)}
       className={cx(
-        'inline-flex min-h-9 items-center gap-1.5 rounded-full border px-3.5 text-sm font-bold transition-colors duration-150',
+        'inline-flex min-h-9 pointer-coarse:min-h-11 items-center gap-1.5 rounded-full border px-3.5 text-sm font-bold transition-colors duration-150',
         selected
           ? 'border-primary bg-primary text-on-primary shadow-sm'
           : 'border-border-strong bg-surface text-text hover:bg-surface-2',

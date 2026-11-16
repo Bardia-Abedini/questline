@@ -43,6 +43,15 @@
     "update_title": "A fresh version is ready",
     "update_body": "Reload to get the newest Questline. Your quests stay safe.",
     "update_action": "Reload",
-    "offline_ready": "Questline now works offline"
+    "offline_ready": "Questline now works offline",
+    "install_title": "Keep Questline on your home screen?",
+    "install_body": "It opens like an app, works offline and is one tap away.",
+    "install_action": "Install"
+  },
+  "date": {
+    "choose": "Choose a date",
+    "previous_month": "Previous month",
+    "next_month": "Next month",
+    "today": "Today"
   }
 }

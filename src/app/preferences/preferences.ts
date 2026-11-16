@@ -106,7 +106,8 @@ export function applyToDocument(
   el.dataset.font = p.font;
   el.dataset.motion = resolved.reduceMotion ? 'reduce' : 'full';
   const meta = doc.querySelector('meta[name="theme-color"]');
-  meta?.setAttribute('content', resolved.theme === 'dark' ? '#1b1725' : '#f6ead6');
+  // The browser bar matches the page background of each theme (--ql-bg).
+  meta?.setAttribute('content', resolved.theme === 'dark' ? '#1b1725' : '#fbf4e8');
 }
 
 function commit(next: Preferences, hydrated?: boolean): void {

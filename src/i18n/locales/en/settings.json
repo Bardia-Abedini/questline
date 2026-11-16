@@ -14,7 +14,8 @@
     "text_size": "Text size",
     "text_normal": "Normal",
     "text_large": "Large",
-    "text_larger": "Larger"
+    "text_larger": "Larger",
+    "font": "Font"
   },
   "accessibility": {
     "title": "Accessibility",
@@ -28,5 +29,22 @@
     "sound_hint": "Chimes and reward sounds.",
     "haptics": "Vibration",
     "haptics_hint": "A small buzz on rewards, where the device supports it."
+  },
+  "search": {
+    "label": "Search settings",
+    "placeholder": "Theme, timer, reminders…",
+    "none": "Nothing matches “{{query}}”. Try another word."
+  },
+  "sound": {
+    "title": "Sound and vibration",
+    "description": "Reward sounds and celebrations are under Rewards below."
+  },
+  "about": {
+    "title": "About",
+    "version": "Version {{version}}",
+    "body": "Questline turns real tasks into tiny quests. Your data lives on this device and works offline; signing in is optional and only adds sync between your devices.",
+    "replay": "Show the welcome again",
+    "replay_hint": "Walk through the four welcome screens once more. Nothing you have is changed.",
+    "made_with": "Made with care for brains that work differently."
   }
 }

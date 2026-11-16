@@ -164,7 +164,9 @@ render their own `<main id="main">`. `/dev/ui` is reserved for the gallery.
   horizontal scroll. Use `min-w-0` and `truncate` in flex rows.
 - Use components from `@/ui` (Button, IconButton, Card, Dialog/Sheet/Modal, Input, Textarea,
   Select, Chip, ToggleChip, Tabs, ProgressBar, showToast, Toggle, SegmentedControl,
-  EmptyState, Icon, Page, Section, Spinner). See them all at `/dev/ui`. For a router
+  EmptyState, Icon, Page, Section, Spinner, DateField). See them all at `/dev/ui`. Use
+  `DateField` for every date input: it is the browser's date input in English and a Jalali
+  calendar in Persian, storing the same `YYYY-MM-DD` value. For a router
   `<Link>` that looks like a button use `className={buttonClass('primary')}`.
 
 ## Data layer
@@ -290,6 +292,12 @@ assume order between packages.
 - E2E: one spec per package, run at both sizes; check English and Persian and
   `expectNoHorizontalScroll`. Use roles and accessible names, `data-testid` only as a last
   resort. Run with `--trace off`.
+- First-run onboarding is skipped in every spec through `storageState` in
+  `playwright.config.ts` (localStorage `ql.onboarding.skip = '1'`). A spec that tests
+  onboarding clears it with `test.use({ storageState: { cookies: [], origins: [] } })`
+  (see `e2e/journey.spec.ts`).
+- `e2e/a11y.spec.ts` runs axe (WCAG 2.1 A/AA) over the main screens in both themes and
+  languages; new screens should be added to its list.
 
 ## Git
 

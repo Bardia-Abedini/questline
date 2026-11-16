@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { addDays } from '@/domain/dates';
 import { shouldAskOverdue } from '@/domain/quests';
 import { db, useNow, useToday } from '@/data';
-import { Button, Input, Modal, showToast } from '@/ui';
+import { Button, DateField, Modal, showToast } from '@/ui';
 import { answerOverdue, dismissOverdue } from '../model/actions';
 
 /**
@@ -75,12 +75,11 @@ export function OverduePrompt() {
       <div className="flex flex-col gap-3">
         <p className="text-sm text-muted">{t('overdue.note')}</p>
         {pickDate ? (
-          <Input
-            type="date"
+          <DateField
             label={t('overdue.new_date')}
             min={today}
             value={newDate}
-            onChange={(e) => setNewDate(e.target.value)}
+            onChange={setNewDate}
           />
         ) : (
           <div>

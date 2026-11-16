@@ -28,16 +28,17 @@
   --ql-surface-2: #f4e9d8;
   --ql-surface-3: #ecdcc4;
   --ql-border: #e3d1b6;
-  --ql-border-strong: #cdb491;
+  /* Field and control outlines: at least 3:1 against every surface (WCAG 1.4.11). */
+  --ql-border-strong: #958061;
 
   /* Text */
   --ql-text: #3d2e25;
   --ql-text-muted: #6f5b4c;
-  --ql-text-faint: #8e7a68;
+  --ql-text-faint: #776352;
 
   /* Brand and roles */
-  --ql-primary: #ad522c;
-  --ql-primary-hover: #94431f;
+  --ql-primary: #9b4825;
+  --ql-primary-hover: #853b1b;
   --ql-primary-soft: #f6dcc8;
   --ql-on-primary: #fffaf3;
   --ql-accent: #557a47;
@@ -48,12 +49,12 @@
   --ql-gold: #b98318;
   --ql-gold-text: #855c06;
   --ql-gold-soft: #f8e7bd;
-  --ql-streak: #c4612b;
-  --ql-success: #47783d;
+  --ql-streak: #9c461b;
+  --ql-success: #3d6a34;
   --ql-success-soft: #dcebd3;
-  --ql-warning: #9a6a0f;
+  --ql-warning: #7d560b;
   --ql-warning-soft: #f7e6bf;
-  --ql-danger: #a8432f;
+  --ql-danger: #9c3d2a;
   --ql-danger-soft: #f6d9d0;
   --ql-info: #2f6c8c;
   --ql-info-soft: #d9e9f1;
@@ -108,10 +109,10 @@
   --ql-surface-2: #2e283d;
   --ql-surface-3: #383049;
   --ql-border: #3f3652;
-  --ql-border-strong: #574b6e;
+  --ql-border-strong: #85789e;
   --ql-text: #f4eadb;
   --ql-text-muted: #c4b6a5;
-  --ql-text-faint: #9d8f80;
+  --ql-text-faint: #ad9f90;
   --ql-primary: #f2a46c;
   --ql-primary-hover: #f7b98a;
   --ql-primary-soft: #4a3226;

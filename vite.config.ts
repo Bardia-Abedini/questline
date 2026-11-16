@@ -19,8 +19,10 @@ export default defineConfig({
         short_name: 'Questline',
         description:
           'Turn real tasks into tiny quests. Start in two taps, get rewarded right away.',
-        theme_color: '#f6ead6',
-        background_color: '#fbf5ea',
+        id: '/',
+        theme_color: '#fbf4e8',
+        background_color: '#fbf4e8',
+        categories: ['productivity', 'lifestyle'],
         display: 'standalone',
         orientation: 'any',
         start_url: '/',

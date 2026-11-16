@@ -188,7 +188,7 @@
     "every_n_min": "2 or more.",
     "every_n_preview_one": "Repeats every {{n}} day.",
     "every_n_preview_other": "Repeats every {{n}} days.",
-    "hint": "The next one appears when you finish this one. Missed days never pile up.",
+    "hint": "The next one appears when you finish this one. Days you skip never pile up.",
     "repeats": "Repeats",
     "summary_daily": "Repeats every day",
     "summary_weekly": "Repeats every week",
