@@ -15,7 +15,7 @@ export interface IconButtonProps extends Omit<ButtonHTMLAttributes<HTMLButtonEle
 }
 
 const SIZES = {
-  sm: 'size-9 text-base',
+  sm: 'size-9 pointer-coarse:size-11 text-base',
   md: 'size-11 text-lg',
   lg: 'size-14 text-2xl',
 };

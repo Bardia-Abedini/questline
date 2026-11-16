@@ -46,6 +46,8 @@ export function Toggle({
         onClick={() => onChange(!checked)}
         className={cx(
           'relative inline-flex h-8 w-14 shrink-0 items-center rounded-full border-2 transition-colors duration-200 ease-cozy',
+          // A 44px touch area around the 32px switch.
+          'before:absolute before:-inset-1.5 before:content-[""]',
           checked ? 'border-accent bg-accent' : 'border-border-strong bg-surface-3',
           'disabled:opacity-55',
         )}

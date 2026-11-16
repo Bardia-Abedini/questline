@@ -1,18 +1,29 @@
+import { lazyPage } from '@/app/lazyPage';
 import type { FeatureRoutes } from '@/app/routing';
-import { CategoriesPage } from './pages/CategoriesPage';
-import { QuestDetailPage } from './pages/QuestDetailPage';
-import { QuestFormPage } from './pages/QuestFormPage';
 import { QuestsPage } from './pages/QuestsPage';
-import { TemplatesPage } from './pages/TemplatesPage';
 
-/** OWNER: Quests package. */
+const form = () => import('./pages/QuestFormPage');
+
+/**
+ * OWNER: Quests package. The list loads with the app; the other pages on first visit.
+ * New and edit get separate components, so switching between them remounts the form.
+ */
 export const routes: FeatureRoutes = {
   shell: [
     { path: 'quests', element: <QuestsPage /> },
-    { path: 'quests/new', element: <QuestFormPage key="new" /> },
-    { path: 'quests/templates', element: <TemplatesPage /> },
-    { path: 'quests/categories', element: <CategoriesPage /> },
-    { path: 'quests/:questId', element: <QuestDetailPage /> },
-    { path: 'quests/:questId/edit', element: <QuestFormPage key="edit" /> },
+    { path: 'quests/new', Component: lazyPage(form, 'QuestFormPage') },
+    {
+      path: 'quests/templates',
+      Component: lazyPage(() => import('./pages/TemplatesPage'), 'TemplatesPage'),
+    },
+    {
+      path: 'quests/categories',
+      Component: lazyPage(() => import('./pages/CategoriesPage'), 'CategoriesPage'),
+    },
+    {
+      path: 'quests/:questId',
+      Component: lazyPage(() => import('./pages/QuestDetailPage'), 'QuestDetailPage'),
+    },
+    { path: 'quests/:questId/edit', Component: lazyPage(form, 'QuestFormPage') },
   ],
 };

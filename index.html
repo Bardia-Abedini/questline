@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <meta name="theme-color" content="#f6ead6" />
+    <meta name="theme-color" content="#fbf4e8" />
     <meta
       name="description"
       content="Turn real tasks into tiny quests. Start in two taps, get rewarded right away."
@@ -22,6 +22,10 @@
             ((!p.theme || p.theme === 'system') &&
               matchMedia('(prefers-color-scheme: dark)').matches);
           el.dataset.theme = dark ? 'dark' : 'light';
+          if (dark) {
+            var meta = document.querySelector('meta[name="theme-color"]');
+            if (meta) meta.setAttribute('content', '#1b1725');
+          }
           if (p.language === 'fa') {
             el.lang = 'fa';
             el.dir = 'rtl';

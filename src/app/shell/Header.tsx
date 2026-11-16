@@ -45,7 +45,9 @@ export function Header() {
             <span className="whitespace-nowrap font-extrabold text-text" data-testid="header-level">
               {t('header.level', { level: number(level) })}
             </span>
-            <span className="truncate text-xs text-muted">
+            {/* The exact XP is also the bar's value text; on narrow headers it is left out
+                rather than cut off (larger text, dyslexia font, Persian). */}
+            <span aria-hidden className="hidden whitespace-nowrap text-xs text-muted sm:inline">
               {t('header.xp_value', { current: number(into), total: number(need) })}
             </span>
           </div>

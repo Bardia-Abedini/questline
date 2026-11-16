@@ -84,7 +84,9 @@ export function SegmentedControl<V extends string>({
               onClick={() => onChange(o.value)}
               className={cx(
                 'inline-flex min-w-0 flex-auto items-center justify-center gap-1.5 rounded-full font-bold transition-[background-color,color,box-shadow] duration-150 ease-cozy',
-                size === 'sm' ? 'min-h-8 px-2.5 text-sm' : 'min-h-10 px-3 text-sm sm:text-base',
+                size === 'sm'
+                  ? 'min-h-8 pointer-coarse:min-h-11 px-2.5 text-sm'
+                  : 'min-h-11 px-3 text-sm sm:text-base',
                 selected ? 'bg-surface text-text shadow-sm' : 'text-muted hover:text-text',
               )}
             >

@@ -1,10 +1,16 @@
+import { lazyPage } from '@/app/lazyPage';
 import type { FeatureRoutes } from '@/app/routing';
-import { FocusPage } from './FocusPage';
-import { HistoryPage } from './HistoryPage';
 import { HISTORY_ROUTE } from './paths';
 
-/** OWNER: Focus package. Focus mode is full screen; the history lives in the shell. */
+/**
+ * OWNER: Focus package. Focus mode is full screen; the history lives in the shell. Both load
+ * on first use (precached by the service worker, so still instant and offline).
+ */
 export const routes: FeatureRoutes = {
-  shell: [{ path: HISTORY_ROUTE, element: <HistoryPage /> }],
-  fullscreen: [{ path: 'focus/:sessionId?', element: <FocusPage /> }],
+  shell: [
+    { path: HISTORY_ROUTE, Component: lazyPage(() => import('./HistoryPage'), 'HistoryPage') },
+  ],
+  fullscreen: [
+    { path: 'focus/:sessionId?', Component: lazyPage(() => import('./FocusPage'), 'FocusPage') },
+  ],
 };

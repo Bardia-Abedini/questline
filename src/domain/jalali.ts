@@ -114,6 +114,6 @@ export function jalaliToLocalDate({ jy, jm, jd }: JalaliDate): LocalDate {
 export function addJalaliMonths(date: JalaliDate, delta: number): JalaliDate {
   const index = date.jy * 12 + (date.jm - 1) + delta;
   const jy = Math.floor(index / 12);
-  const jm = (index % 12 + 12) % 12 + 1;
+  const jm = (((index % 12) + 12) % 12) + 1;
   return { jy, jm, jd: Math.min(date.jd, jalaliMonthLength(jy, jm)) };
 }
