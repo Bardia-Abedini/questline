@@ -1,13 +1,15 @@
 // Edge function `ai`: every method of the app's AI client (src/features/cloud/aiTypes.ts),
 // through the Claude Messages API with structured JSON output, validated before returning.
 //
-// Secrets / env: ANTHROPIC_API_KEY (required for AI), ANTHROPIC_MODEL (default below),
+// Secrets / env: ANTHROPIC_API_KEY (required for AI), ANTHROPIC_MODEL (default
+// claude-haiku-5-5, see _shared/ai.ts), ANTHROPIC_EFFORT (low),
 // AI_DAILY_LIMIT (requests per user per UTC day, default 50), ALLOWED_ORIGINS.
 // Privacy: task text is never logged; logs carry only the action, outcome and timing.
 import Anthropic from 'npm:@anthropic-ai/sdk@1.8.0';
 import {
   buildPrompt,
   extractJson,
+  messageParams,
   parseRequest,
   validateOutput,
   type AiRequest,
@@ -15,10 +17,6 @@ import {
 } from '../_shared/ai.ts';
 import { corsHeaders, json, readJson } from '../_shared/http.ts';
 import { adminClient, allowedOrigins, env, requireUser } from '../_shared/supabase.ts';
-
-const DEFAULT_MODEL = 'claude-opus-5-5';
-/** Models that accept the server-side refusal fallback (`fallbacks: "default"`). */
-const FALLBACK_MODELS = /^claude-(opus-5|fable-5|sonnet-5-5)/;
 
 const today = () => new Date().toISOString().slice(0, 10);
 const dailyLimit = () => Math.max(1, Number(env('AI_DAILY_LIMIT', '50')) || 50);
@@ -42,25 +40,16 @@ class BadOutput extends Error {}
 /** One Messages API call with structured output; one retry with the validation error. */
 async function ask(req: AiRequest): Promise<AiResult> {
   const client = new Anthropic({ apiKey: env('ANTHROPIC_API_KEY'), maxRetries: 1 });
-  const model = env('ANTHROPIC_MODEL', DEFAULT_MODEL);
   const prompt = buildPrompt(req);
+  const params = messageParams(prompt, {
+    model: env('ANTHROPIC_MODEL'),
+    effort: env('ANTHROPIC_EFFORT'),
+    fallbacks: env('ANTHROPIC_FALLBACKS'),
+  });
   const messages: Anthropic.Beta.BetaMessageParam[] = [{ role: 'user', content: prompt.user }];
-  const useFallback = FALLBACK_MODELS.test(model) && env('ANTHROPIC_FALLBACKS', 'on') !== 'off';
 
   for (let attempt = 0; attempt < 2; attempt++) {
-    const response = await client.beta.messages.create({
-      model,
-      max_tokens: prompt.maxTokens,
-      system: prompt.system,
-      messages,
-      output_config: {
-        effort: (env('ANTHROPIC_EFFORT', 'low') as 'low' | 'medium' | 'high') ?? 'low',
-        format: { type: 'json_schema', schema: prompt.schema },
-      },
-      ...(useFallback
-        ? { betas: ['server-side-fallback-2026-07-01'], fallbacks: 'default' as const }
-        : {}),
-    });
+    const response = await client.beta.messages.create({ ...params, messages });
     if (response.stop_reason === 'refusal') throw new BadOutput('refusal');
     const textReply = response.content
       .filter((b): b is Anthropic.Beta.BetaTextBlock => b.type === 'text')

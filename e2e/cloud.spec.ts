@@ -1,4 +1,4 @@
-import { expect, test, type Page } from '@playwright/test';
+import { expect, test, type Browser, type Page } from '@playwright/test';
 
 /**
  * Cloud package. Runs at phone and desktop sizes.
@@ -9,6 +9,8 @@ import { expect, test, type Page } from '@playwright/test';
  * sign-up, sync between two browser contexts and sign-out run too.
  */
 const STACK = process.env.E2E_SUPABASE === '1';
+/** fake-services.mjs, when the stack's functions point at it (supabase/README.md). */
+const FAKE_URL = process.env.E2E_FAKE_URL ?? '';
 
 function trackErrors(page: Page): string[] {
   const errors: string[] = [];
@@ -78,6 +80,31 @@ test.describe('guest mode', () => {
     await expect(page.getByTestId('account-unconfigured')).toBeVisible();
     expect(requests.filter((u) => /supabase|functions\/v1/.test(u))).toEqual([]);
     expect(errors).toEqual([]);
+  });
+
+  test("Today's brain dump and day view links land on the Cloud screens", async ({ page }) => {
+    await page.goto('/');
+    await page.getByRole('link', { name: 'Brain dump' }).click();
+    await expect(page).toHaveURL(/\/brain-dump$/);
+    await expect(page.getByRole('heading', { level: 1, name: 'Brain dump' })).toBeVisible();
+    await page.goto('/');
+    await page.getByRole('link', { name: 'Day view' }).click();
+    await expect(page).toHaveURL(/\/calendar$/);
+    await expect(page.getByRole('heading', { level: 1, name: 'Day plan' })).toBeVisible();
+  });
+
+  test('turning AI off hides it and says so', async ({ page }) => {
+    await page.addInitScript(() => localStorage.setItem('ql.ai.mock', '1'));
+    await page.goto('/settings');
+    const ai = page.getByTestId('settings-ai');
+    await ai.getByRole('switch', { name: 'Use AI helpers' }).click();
+    await expect(ai).toContainText('AI helpers are turned off');
+    await page.goto('/brain-dump');
+    await expect(page.getByTestId('ai-unavailable')).toContainText('AI helpers are turned off');
+    await expect(page.getByRole('button', { name: 'Sort it into quests' })).toHaveCount(0);
+    await page.goto('/quests/new');
+    await page.getByLabel('Quest name').fill('Clean room');
+    await expect(page.getByRole('button', { name: 'Break it down for me' })).toHaveCount(0);
   });
 
   test('settings explain AI, calendar and reminders without an account', async ({ page }) => {
@@ -173,6 +200,43 @@ test.describe('guest mode', () => {
     await expect(page.getByTestId('calendar-timeline')).toContainText('write report');
     expect(await readTable(page, 'focus_blocks')).toHaveLength(1);
     expect(errors).toEqual([]);
+  });
+
+  test('clicking a Focus notification brings the app to the focus session', async ({
+    page,
+    context,
+    browserName,
+  }) => {
+    test.skip(browserName !== 'chromium', 'service worker evaluation is Chromium-only');
+    await context.grantPermissions(['notifications']);
+    await page.goto('/');
+    await page.evaluate(() => navigator.serviceWorker.ready.then(() => undefined));
+    // Controlled by the generated service worker (which imports public/push-sw.js) after a reload.
+    await page.reload();
+    await expect.poll(() => page.evaluate(() => !!navigator.serviceWorker.controller)).toBe(true);
+    await page.goto('/settings');
+    const worker = context.serviceWorkers()[0] ?? (await context.waitForEvent('serviceworker'));
+    // The same notification Focus shows through the service worker on phones, then a click.
+    const result = await worker.evaluate(async () => {
+      // Service worker globals, typed loosely: e2e/ compiles with DOM types only.
+      const sw = self as unknown as {
+        registration: {
+          showNotification(title: string, options: object): Promise<void>;
+          getNotifications(filter: object): Promise<object[]>;
+        };
+        clients: { matchAll(o: object): Promise<{ url: string }[]> };
+        dispatchEvent(e: Event): boolean;
+      };
+      const NotificationEventCtor = (globalThis as Record<string, unknown>)
+        .NotificationEvent as new (type: string, init: object) => Event;
+      await sw.registration.showNotification('Time is up', { tag: 'ql-focus-end', body: 'x' });
+      const [n] = await sw.registration.getNotifications({ tag: 'ql-focus-end' });
+      if (!n) return 'no notification';
+      sw.dispatchEvent(new NotificationEventCtor('notificationclick', { notification: n }));
+      return 'clicked';
+    });
+    expect(result).toBe('clicked');
+    await expect(page).toHaveURL(/\/focus$/);
   });
 
   test('Persian: cloud screens in RTL with no horizontal scroll', async ({ page }) => {
@@ -279,5 +343,314 @@ test.describe('with the local Supabase stack', () => {
     expect((await readTable(phone, 'categories')).length).toBe(3);
     expect(errors).toEqual([]);
     await laptopContext.close();
+  });
+});
+
+/* -------------------------------------------- integration with the real Quests and Focus */
+
+/** A fresh browser profile (= a device). */
+async function newDevice(browser: Browser) {
+  const context = await browser.newContext();
+  const page = await context.newPage();
+  return { context, page };
+}
+
+const synced = (page: Page) =>
+  expect(page.getByTestId('sync-status')).toHaveAttribute('data-state', 'synced', {
+    timeout: 20_000,
+  });
+
+/** Nothing left in this device's outbox (works on full-screen pages without the badge). */
+const outboxEmpty = (page: Page) =>
+  expect.poll(async () => (await readTable(page, 'outbox')).length, { timeout: 20_000 }).toBe(0);
+
+async function signUpOn(page: Page, address: string) {
+  await page.goto('/account');
+  await page.getByRole('radio', { name: 'Create account' }).click();
+  await page.getByLabel('Email').fill(address);
+  await page.getByLabel('Password').fill('tiny steps 123');
+  await page.getByRole('button', { name: 'Create my account' }).click();
+  await expect(page.getByTestId('account-email')).toHaveText(address);
+  await synced(page);
+}
+
+async function signInOn(page: Page, address: string) {
+  await page.goto('/account');
+  await page.getByLabel('Email').fill(address);
+  await page.getByLabel('Password').fill('tiny steps 123');
+  await page.getByRole('button', { name: 'Sign in' }).last().click();
+  await expect(page.getByTestId('account-email')).toHaveText(address);
+}
+
+/** Reloading starts a sync cycle at once (no need to wait for polling). */
+async function syncByReload(page: Page, path = '/') {
+  await page.goto(path);
+  await synced(page);
+}
+
+/** Adds a quest through the Quests form; `fromToday` makes it active. */
+async function addQuestThroughForm(
+  page: Page,
+  title: string,
+  steps: Array<[string, number]>,
+  options: { fromToday?: boolean; dueDate?: string } = {},
+) {
+  await page.goto(options.fromToday ? '/quests/new?from=today' : '/quests/new');
+  await page.getByLabel('Quest name').fill(title);
+  for (const [step, minutes] of steps) {
+    await page.getByPlaceholder('e.g. Open the document').fill(step);
+    await page.getByLabel('Minutes for the new step').fill(String(minutes));
+    await page.getByPlaceholder('e.g. Open the document').press('Enter');
+  }
+  if (options.dueDate) {
+    await page.getByRole('button', { name: 'More details' }).click();
+    await page.getByLabel('Date', { exact: true }).fill(options.dueDate);
+  }
+  await page.getByRole('button', { name: 'Save quest' }).click();
+  if (options.fromToday) await expect(page).toHaveURL(/\/$/);
+  else await expect(page).toHaveURL(/\/quests\/[0-9a-f-]{36}$/);
+}
+
+async function questId(page: Page, title: string): Promise<string> {
+  const q = (await readTable(page, 'quests')).find((r) => r.title === title && !r.deleted_at);
+  return q!.id as string;
+}
+
+const seconds = (text: string | null) => {
+  const digits = (text ?? '').replace(/[۰-۹]/g, (d) => String('۰۱۲۳۴۵۶۷۸۹'.indexOf(d)));
+  const parts = digits.match(/\d+/g)!.map(Number);
+  return parts.reduce((total, n) => total * 60 + n, 0);
+};
+
+test.describe('local stack: the real screens on two devices', () => {
+  test.skip(!STACK, 'needs E2E_SUPABASE=1 and a build pointed at a local stack');
+  test.setTimeout(90_000);
+  const unique = () => `it-${Date.now()}-${Math.floor(Math.random() * 1e6)}@example.com`;
+
+  test('a quest from the Quests form shows on the other device; rewards come back', async ({
+    browser,
+  }) => {
+    const address = unique();
+    const a = await newDevice(browser);
+    await signUpOn(a.page, address);
+    await addQuestThroughForm(a.page, 'Shared homework', [['Open the book', 2]], {
+      fromToday: true,
+    });
+    await synced(a.page);
+
+    const b = await newDevice(browser);
+    await signInOn(b.page, address);
+    await syncByReload(b.page, '/');
+    const board = b.page.getByRole('region', { name: 'Active quests' });
+    await expect(board.getByRole('link', { name: 'Shared homework' })).toBeVisible();
+
+    // Complete the (quick) step on B.
+    await board.getByRole('link', { name: 'Shared homework' }).click();
+    await b.page.getByRole('checkbox', { name: /Open the book/ }).click();
+    await expect(b.page.getByRole('checkbox', { name: /Open the book/ })).toBeChecked();
+    await expect(b.page.getByTestId('header-gold')).not.toHaveText(/^Gold:\s*0$/);
+    const bGold = await b.page.getByTestId('header-gold').textContent();
+    await synced(b.page);
+
+    // A sees the XP and gold earned on B.
+    await syncByReload(a.page, '/');
+    await expect(a.page.getByTestId('header-gold')).toHaveText(bGold!);
+    await expect(a.page.getByRole('progressbar', { name: 'Experience' })).not.toHaveAttribute(
+      'aria-valuenow',
+      '0',
+    );
+    await a.context.close();
+    await b.context.close();
+  });
+
+  test('a focus session started on one device continues on the other', async ({ browser }) => {
+    const address = unique();
+    const a = await newDevice(browser);
+    await signUpOn(a.page, address);
+    await addQuestThroughForm(a.page, 'Read chapter', [['Read pages 1-20', 20]], {
+      fromToday: true,
+    });
+    await a.page.goto('/');
+    await a.page.getByRole('button', { name: /^Start/ }).click();
+    await expect(a.page).toHaveURL(/\/focus\/[0-9a-f-]{36}$/);
+    const sessionId = a.page.url().split('/').pop()!;
+    await expect(a.page.getByTestId('focus-timer')).toBeVisible();
+    await outboxEmpty(a.page);
+
+    const b = await newDevice(browser);
+    await signInOn(b.page, address);
+    await synced(b.page);
+    // Opening the app on B brings it into the running session.
+    await b.page.goto('/');
+    await expect(b.page).toHaveURL(new RegExp(`/focus/${sessionId}$`));
+    const [ta, tb] = await Promise.all([
+      a.page.getByTestId('focus-timer').textContent(),
+      b.page.getByTestId('focus-timer').textContent(),
+    ]);
+    expect(Math.abs(seconds(ta) - seconds(tb))).toBeLessThanOrEqual(2);
+    expect(seconds(tb)).toBeGreaterThan(19 * 60);
+
+    // Finish it on B; A sees it ended.
+    await b.page.getByRole('button', { name: 'Done', exact: true }).click();
+    await outboxEmpty(b.page);
+    await expect
+      .poll(
+        async () => {
+          // A reload syncs; A may be in full-screen focus mode (no badge) until it learns.
+          await a.page.goto('/settings');
+          await a.page.waitForTimeout(2000);
+          const s = (await readTable(a.page, 'focus_sessions')).find((r) => r.id === sessionId);
+          return s?.ended_at ?? null;
+        },
+        { timeout: 30_000 },
+      )
+      .not.toBeNull();
+    await a.page.goto('/');
+    await expect(a.page).toHaveURL(/\/$/);
+    await a.context.close();
+    await b.context.close();
+  });
+
+  test('a guest with real quests signs up and the quests reach the account', async ({
+    browser,
+  }) => {
+    const address = unique();
+    const a = await newDevice(browser);
+    await addQuestThroughForm(a.page, 'Guest essay', [
+      ['Open the draft', 2],
+      ['Write the intro', 25],
+    ]);
+    await signUpOn(a.page, address);
+    const b = await newDevice(browser);
+    await signInOn(b.page, address);
+    await synced(b.page);
+    await expect.poll(() => liveTitles(b.page)).toEqual(['Guest essay']);
+    const steps = (await readTable(b.page, 'steps')).filter((s) => !s.deleted_at);
+    expect(steps.map((s) => s.title).sort()).toEqual(['Open the draft', 'Write the intro']);
+    await a.context.close();
+    await b.context.close();
+  });
+
+  test('signing in with guest data into an account with data asks first, then merges', async ({
+    browser,
+  }) => {
+    const address = unique();
+    const a = await newDevice(browser);
+    await addQuestThroughForm(a.page, 'Phone quest', [['Do it', 2]]);
+    await signUpOn(a.page, address);
+    const b = await newDevice(browser);
+    await addQuestThroughForm(b.page, 'Laptop quest', [['Do it', 2]]);
+    await signInOn(b.page, address);
+    const dialog = b.page.getByRole('dialog', { name: 'This device has its own progress' });
+    await expect(dialog).toBeVisible();
+    expect(await liveTitles(b.page)).toEqual(['Laptop quest']); // nothing changed yet
+    await expectNoHorizontalScroll(b.page);
+    await dialog.getByRole('button', { name: 'Continue' }).click();
+    await synced(b.page);
+    await expect.poll(() => liveTitles(b.page)).toEqual(['Laptop quest', 'Phone quest']);
+    await syncByReload(a.page, '/settings');
+    await expect.poll(() => liveTitles(a.page)).toEqual(['Laptop quest', 'Phone quest']);
+    await a.context.close();
+    await b.context.close();
+  });
+});
+
+test.describe('local stack with fake AI and Google', () => {
+  test.skip(!STACK || !FAKE_URL, 'needs E2E_SUPABASE=1 and E2E_FAKE_URL (fake-services.mjs)');
+  test.setTimeout(90_000);
+
+  test('"Break it down for me" uses the real AI client, then rests kindly at the limit', async ({
+    browser,
+  }) => {
+    const { page, context } = await newDevice(browser);
+    const errors = trackErrors(page);
+    await signUpOn(page, `ai-${Date.now()}-${Math.floor(Math.random() * 1e6)}@example.com`);
+    await page.goto('/quests/new');
+    await page.getByLabel('Quest name').fill('Write the essay');
+    await page.getByRole('button', { name: 'Break it down for me' }).click();
+    await expect(page.getByText(/Here is a plan/)).toBeVisible();
+    await expect(page.getByLabel(/^Step \d$/)).toHaveCount(3);
+    await expect(page.getByLabel('Step 1', { exact: true })).toHaveValue('Open what you need');
+    // Keep asking until the daily limit (small on the test stack) is used up.
+    const resting = page.getByText('AI helpers are resting until tomorrow.');
+    for (let i = 0; i < 10 && !(await resting.isVisible()); i++) {
+      const again = page.getByRole('button', { name: /^(Try again|Break it down for me)$/ });
+      if (!(await again.count())) break;
+      await again.first().click();
+      await page.waitForTimeout(400);
+    }
+    // Whichever call used the last request (a click, or the form's automatic suggestion),
+    // the AI button goes away quietly; a click that hits the limit gets a kind toast.
+    await expect(page.getByRole('button', { name: 'Break it down for me' })).toHaveCount(0);
+    await expect(page.getByRole('button', { name: 'Try again' })).toHaveCount(0);
+    // The form still saves without AI.
+    await page.getByRole('button', { name: 'Save quest' }).click();
+    await expect(page).toHaveURL(/\/quests\/[0-9a-f-]{36}$/);
+    await page.goto('/settings');
+    await expect(page.getByTestId('settings-ai')).toContainText("Today's AI helps are used up");
+    expect(errors).toEqual([]);
+    await context.close();
+  });
+
+  test('the calendar follows quests created, edited, completed, archived and deleted', async ({
+    browser,
+  }) => {
+    const { page, context } = await newDevice(browser);
+    await signUpOn(page, `cal-${Date.now()}-${Math.floor(Math.random() * 1e6)}@example.com`);
+    // Today's links land on the Cloud screens.
+    await page.goto('/');
+    await page.getByRole('link', { name: 'Day view' }).click();
+    await expect(page.getByRole('heading', { level: 1, name: 'Day plan' })).toBeVisible();
+    await page.getByRole('button', { name: 'Connect Google Calendar' }).click();
+    await expect(page).toHaveURL(/\/calendar$/);
+    await expect(page.getByTestId('calendar-connected')).toContainText('player@gmail.test');
+    await expect(page.getByTestId('calendar-timeline')).toContainText('Dentist');
+
+    const events = async () =>
+      (await (await fetch(`${FAKE_URL}/__events`)).json()) as Array<{
+        id: string;
+        summary: string;
+        start: { date?: string };
+      }>;
+    const eventFor = async (id: string) =>
+      (await events()).find((e) => e.id === `qlq${id.replace(/-/g, '')}`) ?? null;
+
+    // Created with a due date -> all-day event.
+    await addQuestThroughForm(page, 'Library books', [['Find the books', 2]], {
+      dueDate: '2030-05-10',
+    });
+    const first = await questId(page, 'Library books');
+    await expect
+      .poll(async () => (await eventFor(first))?.start.date, { timeout: 20_000 })
+      .toBe('2030-05-10');
+    // Due date edited -> the same event moves.
+    await page.getByRole('link', { name: 'Edit' }).click();
+    await page.getByLabel('Date', { exact: true }).fill('2030-05-12');
+    await page.getByRole('button', { name: 'Save quest' }).click();
+    await expect
+      .poll(async () => (await eventFor(first))?.start.date, { timeout: 20_000 })
+      .toBe('2030-05-12');
+    // Archived -> removed.
+    await page.getByRole('button', { name: 'Archive' }).click();
+    await expect.poll(() => eventFor(first), { timeout: 20_000 }).toBeNull();
+
+    // Completed -> ticked; deleted -> removed.
+    await addQuestThroughForm(page, 'Return form', [['Sign it', 2]], { dueDate: '2030-05-11' });
+    const second = await questId(page, 'Return form');
+    await expect
+      .poll(async () => (await eventFor(second))?.summary, { timeout: 20_000 })
+      .toBe('Return form');
+    await page.getByRole('checkbox', { name: /Sign it/ }).click();
+    await expect
+      .poll(async () => (await eventFor(second))?.summary, { timeout: 20_000 })
+      .toBe('✓ Return form');
+    await page.getByRole('button', { name: 'Delete' }).click();
+    await expect.poll(() => eventFor(second), { timeout: 20_000 }).toBeNull();
+
+    // Disconnect removes access.
+    await page.goto('/settings');
+    await page.getByRole('button', { name: 'Disconnect Google Calendar' }).click();
+    await expect(page.getByTestId('settings-calendar')).toContainText('Connect Google Calendar');
+    await context.close();
   });
 });

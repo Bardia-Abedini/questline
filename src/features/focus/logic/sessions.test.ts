@@ -5,6 +5,7 @@ import {
   ensureLocalData,
   focusSessionsRepo,
   ledgerTotals,
+  powerUpActivationsRepo,
   listQuestsByStatus,
   setClock,
   stepsRepo,
@@ -312,5 +313,47 @@ describe('distractions and time away', () => {
     const { steps } = await seed();
     const { session } = await startSession({ stepId: steps[0]!.id, kind: 'break' });
     expect(await markAway(session.id)).toBeNull();
+  });
+});
+
+describe('a double-XP potion waiting for the next session', () => {
+  async function drinkPotion() {
+    return powerUpActivationsRepo.create({
+      type: 'double_xp_potion',
+      inventory_item_id: 'potion-unit',
+      activated_at: new Date(T0).toISOString(),
+      target_type: 'focus_session',
+      target_id: null,
+    });
+  }
+
+  it('doubles the next focus session from its start, exactly once', async () => {
+    const { steps } = await seed(2);
+    const potion = await drinkPotion();
+    const a = await startSession({ stepId: steps[0]!.id });
+    expect(a.session.double_xp).toBe(true);
+    expect((await powerUpActivationsRepo.get(potion.id))?.target_id).toBe(a.session.id);
+
+    // Done right away: the step reward is already doubled (C: 48 XP pool / 2 steps = 24, x2).
+    const r = await completeStepInSession(a.session.id);
+    expect(r.completion?.grant?.total.xp).toBe(48);
+    const stepEvent = (await db.ledger_events.toArray()).find((e) => e.kind === 'step_reward');
+    expect(stepEvent?.meta).toEqual({ double_xp: true });
+
+    // The potion is used up: the next session is normal, and nothing is pending any more.
+    const b = await startSession({ stepId: steps[1]!.id });
+    expect(b.session.double_xp).toBe(false);
+    const pending = await powerUpActivationsRepo.list((x) => x.target_id === null);
+    expect(pending).toEqual([]);
+    const c = await completeStepInSession(b.session.id);
+    expect(c.completion?.grant?.total.xp).toBeLessThan(48);
+  });
+
+  it('a break does not use the potion up', async () => {
+    const { steps } = await seed();
+    const potion = await drinkPotion();
+    const br = await startSession({ stepId: steps[0]!.id, kind: 'break' });
+    expect(br.session.double_xp).toBe(false);
+    expect((await powerUpActivationsRepo.get(potion.id))?.target_id).toBeNull();
   });
 });

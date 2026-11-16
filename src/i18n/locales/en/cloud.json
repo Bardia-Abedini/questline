@@ -121,7 +121,10 @@
     "unavailable_limit_reached": "Today's AI helps are used up",
     "unavailable_limit_reached_hint": "They come back tomorrow. You can still turn each line into a quest.",
     "failed": "The AI could not answer this time. Please try again.",
-    "go_to_account": "Sign in or create an account"
+    "go_to_account": "Sign in or create an account",
+    "unavailable_off": "AI helpers are turned off",
+    "unavailable_off_hint": "You switched them off in settings, so nothing is sent anywhere. You can still turn each line into a quest.",
+    "go_to_settings": "Open settings"
   },
   "priority": {
     "high": "High",
@@ -244,7 +247,9 @@
     "calendar_title": "Google Calendar",
     "open_calendar": "Open day plan",
     "reminders_title": "Reminders",
-    "reminders_hint": "All off by default except due-soon. Switch on only what helps."
+    "reminders_hint": "All off by default except due-soon. Switch on only what helps.",
+    "ai_switch": "Use AI helpers",
+    "ai_switch_hint": "When off, Questline never sends your tasks to the AI, and every AI button hides."
   },
   "data": {
     "title": "Your data",

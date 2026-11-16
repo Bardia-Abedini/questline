@@ -40,8 +40,12 @@ export const PULL_PAGE = 500;
 export const PULL_OVERLAP_MS = 10_000;
 /** After this many refusals a row stops blocking the queue (it is retried on later cycles). */
 export const MAX_REJECTED_ATTEMPTS = 3;
-/** Fallback polling when realtime is not connected. */
-export const POLL_MS = 30_000;
+/**
+ * Fallback polling while realtime is not connected (never configured, blocked, or dropped):
+ * every 20 s while the app is visible, plus an immediate sync on focus, on coming back online
+ * and on resume. Hidden tabs do not poll. With realtime connected there is no polling.
+ */
+export const POLL_MS = 20_000;
 
 /** Exponential backoff with jitter: 1 s, 2 s, 4 s ... up to 5 minutes. */
 export function backoffDelay(failures: number, random: () => number = Math.random): number {
@@ -69,6 +73,8 @@ export interface SyncEngineOptions {
   isOnline?: () => boolean;
   /** Debounce before pushing a new local change. */
   pushDelayMs?: number;
+  /** Fallback polling interval without realtime (tests use a short one). */
+  pollMs?: number;
 }
 
 export class SyncEngine {
@@ -76,6 +82,7 @@ export class SyncEngine {
   private readonly lock: LockFn;
   private readonly isOnline: () => boolean;
   private readonly pushDelayMs: number;
+  private readonly pollMs: number;
   private status: SyncStatus = {
     state: 'idle',
     pending: 0,
@@ -98,6 +105,7 @@ export class SyncEngine {
     this.lock = options.lock ?? createSyncLock();
     this.isOnline = options.isOnline ?? (() => globalThis.navigator?.onLine ?? true);
     this.pushDelayMs = options.pushDelayMs ?? 1500;
+    this.pollMs = options.pollMs ?? POLL_MS;
   }
 
   getStatus(): SyncStatus {
@@ -163,7 +171,7 @@ export class SyncEngine {
     this.pollTimer = setInterval(() => {
       const visible = typeof document === 'undefined' || document.visibilityState === 'visible';
       if (visible && !this.status.live) this.schedule(0);
-    }, POLL_MS);
+    }, this.pollMs);
 
     this.schedule(0);
   }
