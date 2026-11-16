@@ -179,7 +179,9 @@ test('reward effects and achievement toast and gallery', async ({ page }) => {
 test('reward effects show in focus mode too', async ({ page }) => {
   await start(page, '/focus');
   await page.evaluate(() => window.__qlGame.finishQuest());
-  await expect(page.getByTestId('reward-float').first()).toBeVisible();
+  // In focus mode rewards show as one small note in the top bar (badges here).
+  await expect(page.getByTestId('focus-reward-note')).toBeVisible();
+  await expect(page.getByTestId('reward-float')).toHaveCount(0);
 });
 
 test('level-up celebration appears and can be dismissed; boss defeat celebrates', async ({
@@ -311,7 +313,7 @@ test('focus mode Done shows reward effects without covering the next action', as
   await expect(page.getByRole('heading', { level: 1, name: 'Outline the essay' })).toBeVisible();
   await expectUncovered(page, 'Done');
   await page.getByRole('button', { name: 'Done', exact: true }).click();
-  await expect(page.getByTestId('reward-float').first()).toBeVisible();
+  await expect(page.getByTestId('focus-reward-note')).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Step done!' })).toBeVisible();
   await expectUncovered(page, 'Start next step');
 });
