@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, useState, type KeyboardEvent } from 'react';
+import { useEffect, useId, useRef, useState, type KeyboardEvent, type RefObject } from 'react';
 import { useTranslation } from 'react-i18next';
 import { addDays, dayOfWeek, type LocalDate } from '@/domain/dates';
 import {
@@ -75,6 +75,7 @@ function JalaliDateField({
   const auto = useId();
   const controlId = id ?? auto;
   const [open, setOpen] = useState(false);
+  const dayRef = useRef<HTMLButtonElement>(null);
   return (
     <div className={cx('flex flex-col gap-1.5', wrapperClassName)}>
       <label htmlFor={controlId} className="text-sm font-bold text-text">
@@ -99,8 +100,10 @@ function JalaliDateField({
         title={label}
         variant="sheet"
         size="sm"
+        initialFocus={dayRef}
       >
         <JalaliCalendar
+          focusRef={dayRef}
           value={value || null}
           min={min ?? null}
           onPick={(day) => {
@@ -118,7 +121,9 @@ export function JalaliCalendar({
   value,
   min,
   onPick,
+  focusRef,
 }: {
+  focusRef?: RefObject<HTMLButtonElement | null>;
   value: LocalDate | null;
   min: LocalDate | null;
   onPick: (day: LocalDate) => void;
@@ -126,7 +131,9 @@ export function JalaliCalendar({
   const { t } = useTranslation('common');
   const format = useFormat();
   const today = todayLocal();
-  const [focusDay, setFocusDay] = useState<LocalDate>(() => value ?? (min && min > today ? min : today));
+  const [focusDay, setFocusDay] = useState<LocalDate>(
+    () => value ?? (min && min > today ? min : today),
+  );
   const view = localDateToJalali(focusDay);
   const gridRef = useRef<HTMLDivElement>(null);
   const moved = useRef(false);
@@ -217,6 +224,7 @@ export function JalaliCalendar({
               day ? (
                 <span role="gridcell" key={day} aria-selected={day === value}>
                   <button
+                    ref={day === focusDay ? focusRef : undefined}
                     type="button"
                     tabIndex={day === focusDay ? 0 : -1}
                     disabled={!allowed(day)}

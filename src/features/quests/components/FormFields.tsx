@@ -15,6 +15,7 @@ import {
   Icon,
   Input,
   SegmentedControl,
+  DateField,
   Select,
   ToggleChip,
 } from '@/ui';
@@ -125,19 +126,18 @@ export function DueFields({
   const { t } = useTranslation('quests');
   const format = useFormat();
   const shown =
-    date && format.lang === 'fa'
-      ? format.date(date, 'long') + (time ? ` · ${format.time(localDateTimeToMs(date, time))}` : '')
+    date && time && format.lang === 'fa'
+      ? format.date(date, 'long') + ` · ${format.time(localDateTimeToMs(date, time))}`
       : null;
   return (
     <fieldset className="flex min-w-0 flex-col gap-1.5">
       <legend className="mb-1.5 text-sm font-bold text-text">{t('form.due')}</legend>
       <div className="flex flex-wrap items-end gap-2">
-        <Input
+        <DateField
           id={`${idPrefix}-due-date`}
-          type="date"
           label={t('form.due_date')}
           value={date}
-          onChange={(e) => onChange(e.target.value, e.target.value ? time : '')}
+          onChange={(v) => onChange(v, v ? time : '')}
           wrapperClassName="min-w-0 flex-[2_1_10rem]"
         />
         <Input
@@ -277,9 +277,7 @@ export function RecurrenceFields({
   const format = useFormat();
   // 2026-03-08 is a Sunday: day d of the week is 2026-03-(08+d).
   const dayName = (d: number) =>
-    new Intl.DateTimeFormat(format.lang === 'fa' ? 'fa-IR' : 'en-US', { weekday: 'short' }).format(
-      new Date(2026, 2, 8 + d, 12),
-    );
+    format.date(`2026-03-${String(8 + d).padStart(2, '0')}`, 'weekdayShort');
   const n = parseMinutes(value.interval);
   return (
     <div className="flex flex-col gap-3">
