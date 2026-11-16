@@ -285,7 +285,7 @@
     "deleted": "«{{title}}» حذف شد",
     "template_saved": "الگو از روی «{{title}}» ذخیره شد",
     "quest_done": "ماموریت تمام شد: {{title}}",
-    "quest_done_reward": "+{{xp}} امتیاز تجربه و +{{gold}} سکه. آفرین!"
+    "quest_done_reward": "{{xp}} امتیاز تجربه و {{gold}} سکه گرفتی. آفرین!"
   },
   "templates": {
     "title": "الگوها",
