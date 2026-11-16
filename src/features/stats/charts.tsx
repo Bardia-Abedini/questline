@@ -67,23 +67,25 @@ export interface DataTableProps {
 
 export function DataTable({ caption, headers, rows }: DataTableProps) {
   return (
-    <table className="ql-visually-hidden">
-      <caption>{caption}</caption>
-      <thead>
-        <tr>
-          <th scope="col">{headers[0]}</th>
-          <th scope="col">{headers[1]}</th>
-        </tr>
-      </thead>
-      <tbody>
-        {rows.map(([a, b], i) => (
-          <tr key={i}>
-            <th scope="row">{a}</th>
-            <td>{b}</td>
+    <div className="ql-visually-hidden">
+      <table>
+        <caption>{caption}</caption>
+        <thead>
+          <tr>
+            <th scope="col">{headers[0]}</th>
+            <th scope="col">{headers[1]}</th>
           </tr>
-        ))}
-      </tbody>
-    </table>
+        </thead>
+        <tbody>
+          {rows.map(([a, b], i) => (
+            <tr key={i}>
+              <th scope="row">{a}</th>
+              <td>{b}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   );
 }
 
@@ -142,7 +144,7 @@ export function ColumnChart({
     <ResponsiveContainer width="100%" height={height}>
       <BarChart
         data={data}
-        margin={{ top: 8, right: 4, left: 4, bottom: 0 }}
+        margin={{ top: 8, right: 14, left: 14, bottom: 0 }}
         accessibilityLayer={false}
       >
         <CartesianGrid vertical={false} stroke={colors.grid} strokeWidth={1} />
@@ -210,7 +212,7 @@ export function BarList({
     <ul className="flex flex-col gap-1.5">
       {data.map((d) => (
         <li key={d.key} className="flex min-w-0 items-center gap-2 text-sm">
-          <span className="w-28 shrink-0 truncate text-muted">{labelOf(d.key)}</span>
+          <span className="w-24 shrink-0 break-words text-muted sm:w-28">{labelOf(d.key)}</span>
           <span className="min-w-0 flex-1">
             {d.value > 0 && (
               <span
@@ -249,7 +251,7 @@ export function ClimbChart({
     <ResponsiveContainer width="100%" height={180}>
       <AreaChart
         data={data}
-        margin={{ top: 8, right: 8, left: 4, bottom: 0 }}
+        margin={{ top: 8, right: 16, left: 16, bottom: 0 }}
         accessibilityLayer={false}
       >
         <CartesianGrid vertical={false} stroke={colors.grid} strokeWidth={1} />

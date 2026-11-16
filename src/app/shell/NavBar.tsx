@@ -20,7 +20,7 @@ export function BottomTabBar() {
               end={item.to === '/'}
               className={({ isActive }) =>
                 cx(
-                  'group flex h-full flex-col items-center justify-center gap-0.5 px-0.5 text-[0.7rem] font-bold transition-colors',
+                  'group flex h-full flex-col items-center justify-center gap-0.5 px-0.5 text-[11px] in-data-[font=dyslexic]:text-[10px] font-bold transition-colors',
                   isActive ? 'text-primary' : 'text-muted hover:text-text',
                 )
               }
@@ -35,7 +35,7 @@ export function BottomTabBar() {
                   >
                     <Icon name={item.icon} size={22} />
                   </span>
-                  <span className="max-w-full truncate">{t(`nav.${item.key}`)}</span>
+                  <span className="max-w-full whitespace-nowrap">{t(`nav.${item.key}`)}</span>
                 </>
               )}
             </NavLink>

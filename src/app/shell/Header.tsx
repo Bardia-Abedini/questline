@@ -29,7 +29,7 @@ export function Header() {
       style={{ paddingTop: 'env(safe-area-inset-top)' }}
     >
       <div
-        className="mx-auto flex h-[var(--ql-header-h)] w-full max-w-3xl items-center gap-3 px-4 sm:px-6"
+        className="mx-auto flex min-h-[var(--ql-header-h)] w-full max-w-3xl flex-wrap items-center gap-x-3 gap-y-1.5 px-4 py-1.5 sm:px-6"
         aria-label={t('header.status_label')}
         role="group"
       >
@@ -40,7 +40,7 @@ export function Header() {
           <AvatarBadge size={38} />
         </Link>
 
-        <div className="flex min-w-0 flex-1 flex-col gap-1">
+        <div className="flex min-w-fit flex-1 flex-col gap-1">
           <div className="flex items-baseline gap-2 text-sm leading-none">
             <span className="whitespace-nowrap font-extrabold text-text" data-testid="header-level">
               {t('header.level', { level: number(level) })}
@@ -60,7 +60,7 @@ export function Header() {
           />
         </div>
 
-        <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
+        <div className="ms-auto flex shrink-0 items-center gap-1.5 sm:gap-2">
           <span
             className="inline-flex items-center gap-1 rounded-full bg-gold-soft px-2 py-1 text-sm font-extrabold text-gold-text"
             title={t('header.gold')}
