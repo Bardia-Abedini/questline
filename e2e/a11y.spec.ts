@@ -25,6 +25,7 @@ async function seed(page: Page) {
   await page.goto('/quests/new?from=today');
   await page.getByLabel('Quest name').fill('Write the essay');
   await page.getByRole('button', { name: 'Save quest' }).click();
+  await expect(page).not.toHaveURL(/\/new/);
   await page.goto('/');
   await page
     .getByRole('button', { name: /^(Start|Continue)/ })
@@ -33,7 +34,7 @@ async function seed(page: Page) {
   await expect(page).toHaveURL(/\/focus/);
   await page.getByRole('button', { name: 'Done', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Quest complete!' })).toBeVisible();
-  await page.getByRole('button', { name: 'Back to Today' }).first().click();
+  await page.getByRole('link', { name: 'Back to Today' }).first().click();
   await expect(page.getByRole('heading', { level: 1, name: 'Today' })).toBeVisible();
 }
 

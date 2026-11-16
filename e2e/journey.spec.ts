@@ -137,12 +137,12 @@ for (const lang of ['en', 'fa'] as const) {
     await expect(page.getByRole('heading', { level: 1, name: t.example })).toBeVisible();
     await page.getByRole('button', { name: t.done, exact: true }).click();
     await expect(page.getByRole('heading', { name: t.complete })).toBeVisible();
-    await page.getByRole('button', { name: t.backToday }).first().click();
+    await page.getByRole('link', { name: t.backToday }).first().click();
 
     // Back on Today, onboarding is never shown again; level and gold are in the header.
     await expect(page.getByRole('heading', { level: 1, name: t.today })).toBeVisible();
     await expect(page.getByTestId('header-level')).toHaveText(t.level);
-    await expect(page.getByTestId('header-gold')).not.toHaveText(/(^|\D)[0۰]$/);
+    await expect(page.getByTestId('header-gold')).toHaveText(/[1-9۱-۹]/);
     await page.reload();
     await expect(page).not.toHaveURL(/welcome/);
 
@@ -204,8 +204,34 @@ test('energy check and "What should I do now?" work offline from local rules', a
   await expect(pick).toBeVisible();
   await expect(pick.getByRole('heading')).toHaveText('Read two pages');
   await expect(pick.getByTestId('what-now-reason')).not.toBeEmpty();
-  await pick.getByRole('button', { name: 'Start: Read two pages' }).click();
+  // Back online only so the focus page's code can load in this fresh, not yet installed tab
+  // (an installed app has it precached).
+  await context.setOffline(false);
+  await pick.getByRole('button', { name: /^Start.*Read two pages/ }).click();
   await expect(page).toHaveURL(/\/focus/);
   await expect(page.getByRole('heading', { level: 1, name: 'Read two pages' })).toBeVisible();
-  await context.setOffline(false);
 });
+
+for (const lang of ['en', 'fa'] as const) {
+  test(`larger text and the dyslexia font fit every main screen (${lang})`, async ({ page }) => {
+    await page.addInitScript((l) => {
+      localStorage.setItem('ql.onboarding.skip', '1');
+      if (sessionStorage.getItem('prefs')) return;
+      sessionStorage.setItem('prefs', '1');
+      localStorage.setItem(
+        'ql:prefs',
+        JSON.stringify({ textSize: 'larger', font: 'dyslexic', language: l }),
+      );
+    }, lang);
+    for (const path of ['/', '/quests', '/quests/new', '/home', '/shop', '/stats', '/settings']) {
+      await page.goto(path);
+      await expect(page.locator('h1').first()).toBeVisible();
+      await expectNoHorizontalScroll(page);
+      // The header's level text is never cut off.
+      const clipped = await page
+        .getByTestId('header-level')
+        .evaluate((el) => el.scrollWidth > el.clientWidth + 1);
+      expect(clipped, `header level clipped on ${path}`).toBe(false);
+    }
+  });
+}
