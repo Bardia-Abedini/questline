@@ -207,7 +207,7 @@ test('Persian pass: home and shop in RTL with no horizontal scroll', async ({ pa
   }
   await page.goto('/shop');
   await expect(page.getByRole('heading', { level: 1, name: 'فروشگاه' })).toBeVisible();
-  for (const tab of ['جایزه‌های من', 'تزئینی', 'نیروزاها']) {
+  for (const tab of ['جایزه‌های من', 'تزئینات', 'نیروزاها']) {
     await page.getByRole('tab', { name: tab }).click();
     await expectNoHorizontalScroll(page);
   }
