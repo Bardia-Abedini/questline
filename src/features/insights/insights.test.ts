@@ -99,4 +99,17 @@ describe('what should I do now', () => {
     expect(pickAt(ranked, 2)!.quest.title).toBe('A');
     expect(pickAt([], 3)).toBeNull();
   });
+
+  it('offers Active quests first, then the backlog (never the inbox)', async () => {
+    await createQuest({
+      title: 'Urgent waiting',
+      status: 'backlog',
+      priority: 'high',
+      due_date: '2026-03-10',
+    });
+    await createQuest({ title: 'Active one', status: 'active', priority: 'low' });
+    await createQuest({ title: 'Unsorted', status: 'inbox' });
+    const titles = rankPicks(await load(), NOW, null).map((p) => p.quest.title);
+    expect(titles).toEqual(['Active one', 'Urgent waiting']);
+  });
 });

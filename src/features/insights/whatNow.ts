@@ -3,8 +3,8 @@
  * the domain's local scoring rule (due date, priority, guess, current energy). Works
  * offline and for guests; the AI only adds a one-line reason on top.
  *
- * Only Active quests are considered for now: starting a backlog quest must go through the
- * Quests package (active limit and swap sheet), which does not export a public way yet.
+ * Active quests are considered first, then the backlog. A backlog pick is started through
+ * the Quests package's `useStartQuest` (active limit and swap sheet).
  */
 import { useLiveQuery } from 'dexie-react-hooks';
 import { listQuestsByStatus, listSteps, type Quest, type Step } from '@/data';
@@ -57,7 +57,10 @@ export function rankPicks(
   now: number,
   energy: EnergyLevel | null,
 ): QuestPick[] {
-  return rankSuggestions(candidates, now, energy);
+  // Active quests come first (they are what the player chose for now), then the backlog.
+  const active = candidates.filter((c) => c.status === 'active');
+  const waiting = candidates.filter((c) => c.status !== 'active');
+  return [...rankSuggestions(active, now, energy), ...rankSuggestions(waiting, now, energy)];
 }
 
 /**
@@ -75,7 +78,7 @@ export interface PickPool {
   backlogCount: number;
 }
 
-/** Active quests with their next step, live. `undefined` while loading. */
+/** Active and backlog quests with their next step, live. `undefined` while loading. */
 export function usePickPool(): PickPool | undefined {
   return useLiveQuery(async () => {
     const [active, backlog] = await Promise.all([
@@ -83,7 +86,8 @@ export function usePickPool(): PickPool | undefined {
       listQuestsByStatus('backlog'),
     ]);
     const steps = new Map<string, Step[]>();
-    await Promise.all(active.map(async (q) => steps.set(q.id, await listSteps(q.id))));
-    return { candidates: toCandidates(active, steps), backlogCount: backlog.length };
+    const open = [...active, ...backlog];
+    await Promise.all(open.map(async (q) => steps.set(q.id, await listSteps(q.id))));
+    return { candidates: toCandidates(open, steps), backlogCount: backlog.length };
   }, []);
 }
