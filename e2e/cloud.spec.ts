@@ -90,7 +90,7 @@ test.describe('guest mode', () => {
     await page.goto('/');
     await page.getByRole('link', { name: 'Day view' }).click();
     await expect(page).toHaveURL(/\/calendar$/);
-    await expect(page.getByRole('heading', { level: 1, name: 'Day plan' })).toBeVisible();
+    await expect(page.getByRole('heading', { level: 1, name: 'Day view' })).toBeVisible();
   });
 
   test('turning AI off hides it and says so', async ({ page }) => {
@@ -248,7 +248,7 @@ test.describe('guest mode', () => {
     for (const [path, heading] of [
       ['/account', 'حساب کاربری'],
       ['/brain-dump', 'خالی کردن ذهن'],
-      ['/calendar', 'برنامهٔ روز'],
+      ['/calendar', 'نمای روز'],
       ['/settings', 'تنظیمات'],
     ] as const) {
       await page.goto(path);
@@ -600,7 +600,7 @@ test.describe('local stack with fake AI and Google', () => {
     // Today's links land on the Cloud screens.
     await page.goto('/');
     await page.getByRole('link', { name: 'Day view' }).click();
-    await expect(page.getByRole('heading', { level: 1, name: 'Day plan' })).toBeVisible();
+    await expect(page.getByRole('heading', { level: 1, name: 'Day view' })).toBeVisible();
     await page.getByRole('button', { name: 'Connect Google Calendar' }).click();
     await expect(page).toHaveURL(/\/calendar$/);
     await expect(page.getByTestId('calendar-connected')).toContainText('player@gmail.test');

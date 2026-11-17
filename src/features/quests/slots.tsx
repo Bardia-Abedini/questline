@@ -25,4 +25,11 @@ export function ActiveQuestsSlot() {
   return <ActiveBoard />;
 }
 
+/**
+ * Starting a quest from another package (e.g. "What should I do now?"): `start(quest)`
+ * activates it and opens focus on its next step. When Active is full the swap sheet opens
+ * first. Render the returned `sheet` once where the hook is used.
+ */
+export { useStartQuest } from './components/useStartQuest';
+
 export type { QuickCaptureProps };

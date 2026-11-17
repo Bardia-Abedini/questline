@@ -24,7 +24,8 @@
     "empty_backlog": "Your Active list is empty. Choose a quest from your backlog and I'll help from there.",
     "empty_new": "Add a quest, and I'll help you pick where to begin.",
     "open_backlog": "Open your quests",
-    "add_quest": "Add a quest"
+    "add_quest": "Add a quest",
+    "from_backlog": "From your backlog. Starting it adds it to your Active list."
   },
   "reason": {
     "overdue": "Its date has come, so it's a good one to clear now.",
@@ -34,6 +35,7 @@
     "already_active": "It's already on your Active list, one tap from going.",
     "quick_start": "The next step is quick to start.",
     "fits_low_energy": "It's gentle enough for low energy.",
-    "fits_high_energy": "It's a good match for your energy right now."
+    "fits_high_energy": "It's a good match for your energy right now.",
+    "from_backlog": "It's been waiting in your backlog, ready when you are."
   }
 }

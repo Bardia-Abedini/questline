@@ -8,7 +8,10 @@ import {
   localizeDigits,
   toJalali,
 } from './format';
-import { resources } from './resources';
+import { resources as bundled } from './resources';
+import { fa } from './resourcesFa';
+
+const resources = { en: bundled.en, fa };
 
 function keys(obj: object, prefix = ''): string[] {
   return Object.entries(obj).flatMap(([k, v]) =>

@@ -4,6 +4,7 @@ import { Link, useNavigate } from 'react-router';
 import { focusPath, PATHS } from '@/app/routing';
 import { clock } from '@/data';
 import { useAi } from '@/features/cloud/slots';
+import { useStartQuest } from '@/features/quests/slots';
 import { useFormat } from '@/i18n/useFormat';
 import { Button, buttonClass, Card, Icon, IconButton } from '@/ui';
 import { useCurrentEnergy } from './energy';
@@ -98,6 +99,7 @@ function WhatNowCard({
   const headingId = useId();
   const [onlyOne, setOnlyOne] = useState(false);
   const aiLine = useAiReason(pick);
+  const starter = useStartQuest();
 
   useEffect(() => {
     titleRef.current?.focus();
@@ -143,7 +145,10 @@ function WhatNowCard({
   const { quest } = pick;
   const step = quest.nextStep;
   const showStep = !(step.title === quest.title && !step.guess_minutes);
-  const localReason = t(`reason.${pick.reasons[0] ?? 'already_active'}`);
+  const waiting = quest.status !== 'active';
+  const localReason = t(
+    `reason.${pick.reasons[0] ?? (waiting ? 'from_backlog' : 'already_active')}`,
+  );
 
   return (
     <Card
@@ -186,13 +191,21 @@ function WhatNowCard({
           localReason
         )}
       </p>
+      {waiting && <p className="text-sm text-muted">{t('what_now.from_backlog')}</p>}
       {onlyOne && (
         <p className="text-sm text-muted" role="status">
           {t('what_now.only_one')}
         </p>
       )}
       <div className="flex flex-wrap gap-2">
-        <Button icon="play" onClick={() => navigate(focusPath({ stepId: step.id }))}>
+        <Button
+          icon="play"
+          onClick={() =>
+            waiting
+              ? void starter.start({ id: quest.id, title: quest.title })
+              : navigate(focusPath({ stepId: step.id }))
+          }
+        >
           {t('what_now.start')}
           <span className="ql-visually-hidden">: {quest.title}</span>
         </Button>
@@ -207,6 +220,7 @@ function WhatNowCard({
           {t('what_now.not_this')}
         </Button>
       </div>
+      {starter.sheet}
     </Card>
   );
 }

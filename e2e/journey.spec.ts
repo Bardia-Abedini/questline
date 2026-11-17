@@ -212,6 +212,39 @@ test('energy check and "What should I do now?" work offline from local rules', a
   await expect(page.getByRole('heading', { level: 1, name: 'Read two pages' })).toBeVisible();
 });
 
+test('"What should I do now?" can pick a backlog quest; with Active full the swap sheet opens', async ({
+  page,
+}) => {
+  await page.addInitScript(() => localStorage.setItem('ql.onboarding.skip', '1'));
+  // Three active quests fill Active (limit 3); the fourth waits in the backlog.
+  for (const title of ['Email the tutor', 'Tidy the desk', 'Read two pages', 'Plan the trip']) {
+    await page.goto('/quests/new?from=today');
+    await page.getByLabel('Quest name').fill(title);
+    await page.getByRole('button', { name: 'Save quest' }).click();
+    await expect(page).not.toHaveURL(/\/new/);
+  }
+  await page.goto('/');
+  await page.getByRole('button', { name: 'What should I do now?' }).click();
+  const pick = page.getByTestId('what-now');
+  // Active quests come first; the backlog quest is the fourth offer.
+  for (let i = 0; i < 3; i++) {
+    await expect(pick.getByRole('heading')).not.toHaveText('Plan the trip');
+    await pick.getByRole('button', { name: 'Not this one' }).click();
+  }
+  await expect(pick.getByRole('heading')).toHaveText('Plan the trip');
+  await expect(pick).toContainText('From your backlog');
+  await pick.getByRole('button', { name: /^Start.*Plan the trip/ }).click();
+
+  const sheet = page.getByRole('dialog', { name: 'Your active list is full' });
+  await expect(sheet).toBeVisible();
+  await sheet
+    .getByRole('button', { name: /to the backlog and swap/ })
+    .first()
+    .click();
+  await expect(page).toHaveURL(/\/focus/);
+  await expect(page.getByRole('heading', { level: 1, name: 'Plan the trip' })).toBeVisible();
+});
+
 for (const lang of ['en', 'fa'] as const) {
   test(`larger text and the dyslexia font fit every main screen (${lang})`, async ({ page }) => {
     await page.addInitScript((l) => {

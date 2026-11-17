@@ -174,6 +174,7 @@ function CalendarSettings() {
 
 function ReminderSettings() {
   const { t } = useTranslation('cloud');
+  const { number } = useFormat();
   const prefs = useNotificationPrefs();
   const signedIn = useCloud((s) => s.auth === 'signed_in');
   if (!prefs) return null;
@@ -208,7 +209,7 @@ function ReminderSettings() {
             onChange={(e) => save({ due_soon_minutes: Number(e.target.value) })}
             options={DUE_SOON_MINUTES.map((m) => ({
               value: String(m),
-              label: t('calendar.minutes', { count: m }),
+              label: t('calendar.minutes', { count: m, n: number(m) }),
             }))}
           />
         )}

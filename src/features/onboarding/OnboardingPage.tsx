@@ -5,7 +5,8 @@ import { setPreferences, usePreferences } from '@/app/preferences/preferences';
 import { focusPath, PATHS } from '@/app/routing';
 import { AvatarSvg } from '@/art/avatar/AvatarSvg';
 import { HAIR_SWATCHES, SKIN_SWATCHES } from '@/art/avatar/swatches';
-import { getProfile, updateProfile, useProfile, useQuest, type AvatarConfig } from '@/data';
+import { useProfile, useQuest } from '@/data';
+import { equipAvatar, setDisplayName } from '@/features/game/slots';
 import { useFormat } from '@/i18n/useFormat';
 import {
   Button,
@@ -258,10 +259,8 @@ function AdventurerScreen({ heading, onNext }: { heading: Heading; onNext: () =>
   if (!profile) return null;
   const look = profile.avatar;
 
-  const set = async (patch: Partial<AvatarConfig>) => {
-    const current = await getProfile();
-    await updateProfile({ avatar: { ...current.avatar, ...patch } });
-  };
+  const set = (slot: 'skin' | 'hair' | 'hair_color', id: string) =>
+    equipAvatar(slot, id).catch((e: unknown) => console.warn('[onboarding] avatar', e));
   const item = (id: string) => tg(`items.${id}` as 'items.hair_short');
 
   return (
@@ -279,12 +278,12 @@ function AdventurerScreen({ heading, onNext }: { heading: Heading; onNext: () =>
             value={name}
             maxLength={40}
             onChange={(e) => setName(e.target.value)}
-            onBlur={() => void updateProfile({ display_name: name.trim().slice(0, 40) })}
+            onBlur={() => void setDisplayName(name)}
           />
           <Swatches
             label={t('adventurer.skin')}
             value={look.skin}
-            onChange={(skin) => void set({ skin })}
+            onChange={(skin) => void set('skin', skin)}
             options={Object.entries(SKIN_SWATCHES).map(([id, s]) => ({
               id,
               color: s.base,
@@ -298,7 +297,7 @@ function AdventurerScreen({ heading, onNext }: { heading: Heading; onNext: () =>
                 <ToggleChip
                   key={id}
                   selected={look.hair === id}
-                  onChange={() => void set({ hair: id })}
+                  onChange={() => void set('hair', id)}
                 >
                   {item(id)}
                 </ToggleChip>
@@ -308,7 +307,7 @@ function AdventurerScreen({ heading, onNext }: { heading: Heading; onNext: () =>
           <Swatches
             label={t('adventurer.hair_color')}
             value={look.hair_color}
-            onChange={(hair_color) => void set({ hair_color })}
+            onChange={(hair_color) => void set('hair_color', hair_color)}
             options={Object.entries(HAIR_SWATCHES).map(([id, s]) => ({
               id,
               color: s.base,
@@ -322,7 +321,7 @@ function AdventurerScreen({ heading, onNext }: { heading: Heading; onNext: () =>
           size="lg"
           iconEnd="arrow-forward"
           onClick={() => {
-            void updateProfile({ display_name: name.trim().slice(0, 40) });
+            void setDisplayName(name);
             onNext();
           }}
         >
