@@ -168,7 +168,9 @@ test('reward effects and achievement toast and gallery', async ({ page }) => {
   await expect(page.getByTestId('reward-float').first()).toBeVisible();
   await expect(page.getByTestId('reward-float').first()).toContainText('XP');
   const note = page.getByTestId('reward-note-achievement');
-  await expect(note).toBeVisible();
+  // Achievements are checked shortly after the reward events settle; under a full parallel
+  // run that can take longer than the default 5 s.
+  await expect(note).toBeVisible({ timeout: 15_000 });
   await note.getByRole('button', { name: 'See it' }).click();
   await expect(page).toHaveURL(/\/home\?tab=achievements/);
   await expect(page.getByTestId('achievement-first_step')).toHaveAttribute('data-unlocked', 'true');

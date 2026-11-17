@@ -584,10 +584,33 @@ test.describe('with the AI mock', () => {
 test('Persian: the main quest screens fit at any size with no horizontal scroll', async ({
   page,
 }) => {
+  // A long walk over seven screens, several of them loaded on first visit: more time than
+  // the default 30 s when the whole suite runs in parallel.
+  test.slow();
   const errors = trackErrors(page);
   await open(page, '/settings');
   await page.getByRole('radio', { name: 'فارسی' }).click();
   await expect(page.locator('html')).toHaveAttribute('dir', 'rtl');
+  // The choice is saved to the local database a moment later; the next screens reload the
+  // page, so wait until it is stored (otherwise a busy machine reloads back into English).
+  await expect
+    .poll(() =>
+      page.evaluate(
+        () =>
+          new Promise<string>((resolve) => {
+            const req = indexedDB.open('questline');
+            req.onsuccess = () => {
+              const db = req.result;
+              const get = db.transaction('settings').objectStore('settings').getAll();
+              get.onsuccess = () => {
+                resolve((get.result as Array<{ language: string }>).map((r) => r.language).join());
+                db.close();
+              };
+            };
+          }),
+      ),
+    )
+    .toBe('fa');
   await expectNoHorizontalScroll(page);
 
   await open(page, '/quests/new?from=today');

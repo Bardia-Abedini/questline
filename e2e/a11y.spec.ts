@@ -38,6 +38,24 @@ async function seed(page: Page) {
   await expect(page.getByRole('heading', { level: 1, name: 'Today' })).toBeVisible();
 }
 
+/** The language saved in the local database's settings row. */
+function storedLanguage(page: Page): Promise<string> {
+  return page.evaluate(
+    () =>
+      new Promise<string>((resolve) => {
+        const req = indexedDB.open('questline');
+        req.onsuccess = () => {
+          const db = req.result;
+          const get = db.transaction('settings').objectStore('settings').getAll();
+          get.onsuccess = () => {
+            resolve((get.result as Array<{ language: string }>).map((r) => r.language).join());
+            db.close();
+          };
+        };
+      }),
+  );
+}
+
 async function scan(page: Page, where: string) {
   const results = await new AxeBuilder({ page })
     .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'])
@@ -64,6 +82,8 @@ for (const theme of ['light', 'dark'] as const) {
         await page.goto('/settings');
         await page.getByRole('radio', { name: 'فارسی' }).click();
         await expect(page.locator('html')).toHaveAttribute('dir', 'rtl');
+        // Wait until the choice is stored before the page reloads on the next screens.
+        await expect.poll(() => storedLanguage(page)).toBe('fa');
       }
       await expect(page.locator('html')).toHaveAttribute('data-theme', theme);
       for (const path of SCREENS) {
