@@ -353,7 +353,7 @@ function ConnectionCard({ auth }: { auth: string }) {
 
 function PlanDialog({ gap, onClose }: { gap: Span | null; onClose: () => void }) {
   const { t } = useTranslation('cloud');
-  const { time } = useFormat();
+  const { time, number } = useFormat();
   const quests = useLiveQuery(
     async () =>
       (await db.quests.toArray())
@@ -420,7 +420,7 @@ function PlanDialog({ gap, onClose }: { gap: Span | null; onClose: () => void })
             onChange={(e) => setMinutes(Number(e.target.value))}
             options={(lengths.length ? lengths : [max]).map((m) => ({
               value: String(m),
-              label: t('calendar.minutes', { count: m }),
+              label: t('calendar.minutes', { count: m, n: number(m) }),
             }))}
           />
         </div>

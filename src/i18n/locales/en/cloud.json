@@ -199,8 +199,8 @@
     "plan_body": "Starting at {{from}}.",
     "quest": "Quest",
     "length": "Length",
-    "minutes_one": "{{count}} minute",
-    "minutes_other": "{{count}} minutes",
+    "minutes_one": "{{n}} minute",
+    "minutes_other": "{{n}} minutes",
     "plan_save": "Plan it",
     "planned": "Focus block planned",
     "no_quests": "Add a quest first, then plan time for it here."

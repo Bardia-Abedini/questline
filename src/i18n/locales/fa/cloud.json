@@ -199,8 +199,8 @@
     "plan_body": "شروع از {{from}}.",
     "quest": "ماموریت",
     "length": "مدت",
-    "minutes_one": "{{count}} دقیقه",
-    "minutes_other": "{{count}} دقیقه",
+    "minutes_one": "{{n}} دقیقه",
+    "minutes_other": "{{n}} دقیقه",
     "plan_save": "بچینش",
     "planned": "بازهٔ تمرکز چیده شد",
     "no_quests": "اول یک ماموریت اضافه کن، بعد اینجا برایش وقت بگذار."
