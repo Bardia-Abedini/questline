@@ -7,6 +7,13 @@ import { DailyQuests } from './ui/DailyQuests';
 
 /** Public components of the Game package, mounted by the shell and other packages. OWNER: Game. */
 
+/**
+ * Changing the adventurer from another package (onboarding): `equipAvatar(slot, itemId)` puts
+ * on an owned item (starter items are owned by everyone) and `setDisplayName(name)` saves the
+ * name. Both validate against the Game catalog.
+ */
+export { equipAvatar, setDisplayName } from './logic/looks';
+
 /** The player's real avatar, round, at any size (header badge). */
 export function AvatarBadge({ size = 40 }: { size?: number }) {
   const { t } = useTranslation('common');
