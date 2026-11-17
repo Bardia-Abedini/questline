@@ -1,5 +1,5 @@
 import { ensureLocalData } from '@/data/bootstrap';
-import { detectLanguage, initI18n, isLanguage } from '@/i18n';
+import { detectLanguage, initI18n, isLanguage, loadLanguage } from '@/i18n';
 import {
   applyInitialPreferences,
   readSnapshot,
@@ -16,6 +16,7 @@ export async function bootstrap(): Promise<void> {
   const snapshot = readSnapshot();
   const cached = snapshot.language;
   const language = isLanguage(cached) ? cached : detectLanguage(navigator);
+  await loadLanguage(language).catch((e: unknown) => console.error('[i18n] load', e));
   initI18n(language);
   await ensureLocalData({
     language,
