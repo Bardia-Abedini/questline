@@ -159,7 +159,7 @@
     "back": "Back to the text"
   },
   "calendar": {
-    "title": "Day plan",
+    "title": "Day view",
     "subtitle": "See your free time and plan a focus block in it.",
     "connect": "Connect Google Calendar",
     "disconnect": "Disconnect Google Calendar",
@@ -245,7 +245,7 @@
     "ai_usage": "{{used}} of {{limit}} AI helps used today",
     "open_brain_dump": "Open brain dump",
     "calendar_title": "Google Calendar",
-    "open_calendar": "Open day plan",
+    "open_calendar": "Open day view",
     "reminders_title": "Reminders",
     "reminders_hint": "All off by default except due-soon. Switch on only what helps.",
     "ai_switch": "Use AI helpers",
