@@ -8,7 +8,7 @@ import { useStartQuest } from '@/features/quests/slots';
 import { useFormat } from '@/i18n/useFormat';
 import { Button, buttonClass, Card, Icon, IconButton } from '@/ui';
 import { useCurrentEnergy } from './energy';
-import { pickAt, rankPicks, usePickPool, type QuestPick } from './whatNow';
+import { pickAt, rankPicks, usePickPool, type QuestPick } from './whatNowPicks';
 
 /**
  * "What should I do now?": one button. The pick appears at once from the local rule; when

@@ -3,7 +3,7 @@ import { createQuest, db, setClock, type Quest, type Step } from '@/data';
 import { events } from '@/services';
 import { resetAll } from '@/test/db';
 import { checkInEnergy, currentEnergy, ENERGY_FRESH_MS } from './energy';
-import { pickAt, rankPicks, toCandidates } from './whatNow';
+import { pickAt, rankPicks, toCandidates } from './whatNowPicks';
 
 const NOW = Date.parse('2026-03-10T09:00:00Z');
 

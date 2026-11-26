@@ -10,7 +10,7 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "preview": "vite preview",
-    "lint": "eslint . --max-warnings 0 && prettier --check . && node scripts/check-logical-css.mjs",
+    "lint": "eslint . --max-warnings 0 && prettier --check . && node scripts/check-logical-css.mjs && node scripts/check-case-collisions.mjs",
     "format": "prettier --write .",
     "typecheck": "tsc -b",
     "test": "vitest run",
