@@ -1,0 +1,145 @@
+/*
+ * Theme colors and idle motion for Questline art (src/art). Scenes read these variables, so
+ * the cottage shows daytime in the light theme and a cozy evening in the dark theme.
+ * Items keep their own fixed colors (see style.ts).
+ */
+:root,
+[data-theme='light'] {
+  --qa-sky-top: #a9d6f0;
+  --qa-sky-bottom: #e6f4fb;
+  --qa-wall: #f7e6cc;
+  --qa-wall-shade: #ecd4b2;
+  --qa-wall-line: #e2c49c;
+  --qa-floor: #d9b184;
+  --qa-floor-shade: #c49668;
+  --qa-floor-line: #b08257;
+  --qa-baseboard: #c99a6b;
+  --qa-glow: rgb(255 236 190 / 0);
+  --qa-room-tint: #ffffff;
+  --qa-ground: #9cc781;
+  --qa-ground-shade: #84b06b;
+  --qa-hill: #b8d79a;
+  --qa-window-light: #f6dfa6;
+  --qa-badge-bg: var(--ql-primary-soft);
+}
+
+:root[data-theme='dark'],
+[data-theme='dark'] {
+  --qa-sky-top: #2b2a55;
+  --qa-sky-bottom: #6b4f7e;
+  --qa-wall: #6a5468;
+  --qa-wall-shade: #5a465b;
+  --qa-wall-line: #574358;
+  --qa-floor: #7d5a49;
+  --qa-floor-shade: #6a4a3c;
+  --qa-floor-line: #573c30;
+  --qa-baseboard: #5d4135;
+  --qa-glow: rgb(255 200 120 / 0.28);
+  --qa-room-tint: #9488b8;
+  --qa-ground: #4e6a55;
+  --qa-ground-shade: #3f5847;
+  --qa-hill: #5a6f63;
+  --qa-window-light: #ffd479;
+  --qa-badge-bg: var(--ql-primary-soft);
+}
+
+/* Day-only and evening-only details (sun vs moon, lit windows). */
+.qa-night {
+  display: none;
+}
+[data-theme='dark'] .qa-night {
+  display: inline;
+}
+[data-theme='dark'] .qa-day {
+  display: none;
+}
+
+/* Soft light halo around lamps and candles (evening only). */
+.qa-glow {
+  filter: blur(5px);
+}
+
+/* Idle motion. Global reduced-motion rules in src/ui/styles.css stop these. */
+.qa-breathe {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  animation: qa-breathe 3.2s ease-in-out infinite;
+}
+.qa-sway {
+  transform-box: fill-box;
+  transform-origin: 0% 100%;
+  animation: qa-sway 2.6s ease-in-out infinite;
+}
+.qa-bob {
+  transform-box: fill-box;
+  animation: qa-bob 2.8s ease-in-out infinite;
+}
+.qa-blink {
+  transform-box: fill-box;
+  transform-origin: 50% 50%;
+  animation: qa-blink 5s ease-in-out infinite;
+}
+.qa-flicker {
+  animation: qa-flicker 3.6s ease-in-out infinite;
+}
+.qa-swing {
+  transform-box: fill-box;
+  transform-origin: 50% 0%;
+  animation: qa-swing 4s ease-in-out infinite;
+}
+
+@keyframes qa-breathe {
+  0%,
+  100% {
+    transform: scale(1, 1);
+  }
+  50% {
+    transform: scale(1.02, 0.97);
+  }
+}
+@keyframes qa-sway {
+  0%,
+  100% {
+    transform: rotate(-6deg);
+  }
+  50% {
+    transform: rotate(8deg);
+  }
+}
+@keyframes qa-bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-2px);
+  }
+}
+@keyframes qa-blink {
+  0%,
+  92%,
+  100% {
+    transform: scaleY(1);
+  }
+  95% {
+    transform: scaleY(0.1);
+  }
+}
+@keyframes qa-flicker {
+  0%,
+  100% {
+    opacity: 0.85;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+@keyframes qa-swing {
+  0%,
+  100% {
+    transform: rotate(-2deg);
+  }
+  50% {
+    transform: rotate(2deg);
+  }
+}

@@ -1,0 +1,57 @@
+{
+  "app_name": "Questline",
+  "tagline": "Tiny steps, real quests.",
+  "nav": {
+    "label": "Main",
+    "today": "Today",
+    "quests": "Quests",
+    "home": "Home",
+    "shop": "Shop",
+    "stats": "Stats",
+    "settings": "Settings"
+  },
+  "header": {
+    "status_label": "Your progress",
+    "avatar": "Your adventurer",
+    "level": "Level {{level}}",
+    "xp": "Experience",
+    "xp_value": "{{current}} / {{total}} XP",
+    "gold": "Gold",
+    "streak": "Streak",
+    "streak_value_one": "{{count}} day streak",
+    "streak_value_other": "{{count}} day streak",
+    "streak_resting": "Resting, it will wait for you"
+  },
+  "close": "Close",
+  "dismiss": "Dismiss",
+  "remove_item": "Remove {{item}}",
+  "loading": "Loading…",
+  "skip_to_content": "Skip to content",
+  "error": {
+    "title": "Something went a little sideways",
+    "body": "Your quests are safe. Try again, or reload the app.",
+    "retry": "Try again",
+    "reload": "Reload",
+    "details": "Details"
+  },
+  "not_found": {
+    "title": "This path leads nowhere",
+    "body": "The page you were looking for wandered off. Let's head back.",
+    "action": "Back to Today"
+  },
+  "pwa": {
+    "update_title": "A fresh version is ready",
+    "update_body": "Reload to get the newest Questline. Your quests stay safe.",
+    "update_action": "Reload",
+    "offline_ready": "Questline now works offline",
+    "install_title": "Keep Questline on your home screen?",
+    "install_body": "It opens like an app, works offline and is one tap away.",
+    "install_action": "Install"
+  },
+  "date": {
+    "choose": "Choose a date",
+    "previous_month": "Previous month",
+    "next_month": "Next month",
+    "today": "Today"
+  }
+}

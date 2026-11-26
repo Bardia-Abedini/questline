@@ -1,0 +1,356 @@
+/*
+ * Questline design system: tokens and base styles.
+ *
+ * - Every color is a CSS variable (`--ql-*`) with a light and a dark value.
+ *   Tailwind utilities map onto them (`bg-surface`, `text-muted`, `text-xp`, ...), see @theme.
+ * - Theme: `data-theme="light|dark"` on <html> (resolved from the setting / device).
+ * - Text size: `data-text-size="normal|large|larger"` scales the root font size; use rem.
+ * - Font: `data-font="default|dyslexic"`; Persian (`lang="fa"`) always uses Vazirmatn.
+ * - Motion: `data-motion="reduce"` turns off animations and transitions.
+ * - Direction: `dir="rtl"` on <html>. Use logical utilities only (ps/pe, ms/me, start/end,
+ *   text-start/end, border-s/e, rounded-s/e). `npm run lint` rejects physical ones.
+ */
+@import 'tailwindcss';
+
+@custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));
+@custom-variant rtl (&:where([dir='rtl'], [dir='rtl'] *));
+@custom-variant reduce-motion (&:where([data-motion='reduce'], [data-motion='reduce'] *));
+
+:root,
+[data-theme='light'] {
+  color-scheme: light;
+
+  /* Surfaces: morning cottage */
+  --ql-bg: #fbf4e8;
+  --ql-bg-glow-1: #fde7c8;
+  --ql-bg-glow-2: #e8efdc;
+  --ql-surface: #fffbf4;
+  --ql-surface-2: #f4e9d8;
+  --ql-surface-3: #ecdcc4;
+  --ql-border: #e3d1b6;
+  /* Field and control outlines: at least 3:1 against every surface (WCAG 1.4.11). */
+  --ql-border-strong: #958061;
+
+  /* Text */
+  --ql-text: #3d2e25;
+  --ql-text-muted: #6f5b4c;
+  --ql-text-faint: #776352;
+
+  /* Brand and roles */
+  --ql-primary: #9b4825;
+  --ql-primary-hover: #853b1b;
+  --ql-primary-soft: #f6dcc8;
+  --ql-on-primary: #fffaf3;
+  --ql-accent: #557a47;
+  --ql-accent-soft: #dfead2;
+  --ql-on-accent: #fbfff6;
+  --ql-xp: #7650a8;
+  --ql-xp-soft: #ebe1f6;
+  --ql-gold: #b98318;
+  --ql-gold-text: #855c06;
+  --ql-gold-soft: #f8e7bd;
+  --ql-streak: #9c461b;
+  --ql-success: #3d6a34;
+  --ql-success-soft: #dcebd3;
+  --ql-warning: #7d560b;
+  --ql-warning-soft: #f7e6bf;
+  --ql-danger: #9c3d2a;
+  --ql-danger-soft: #f6d9d0;
+  --ql-info: #2f6c8c;
+  --ql-info-soft: #d9e9f1;
+  --ql-focus: #2f6c8c;
+  --ql-scrim: rgb(46 30 20 / 0.42);
+
+  /* Category colors (Category.color stores the suffix) */
+  --ql-cat-sky: #4f86b0;
+  --ql-cat-sage: #5f8a4f;
+  --ql-cat-rose: #c0607a;
+  --ql-cat-honey: #c08a1d;
+  --ql-cat-lavender: #8a6abf;
+  --ql-cat-clay: #b4643c;
+  --ql-cat-teal: #2f8a86;
+  --ql-cat-slate: #6b7280;
+
+  /* Shape and depth */
+  --ql-radius-sm: 0.625rem;
+  --ql-radius-md: 1rem;
+  --ql-radius-lg: 1.5rem;
+  --ql-radius-xl: 2rem;
+  --ql-shadow-sm: 0 1px 2px rgb(96 60 30 / 0.08), 0 1px 1px rgb(96 60 30 / 0.04);
+  --ql-shadow-md: 0 6px 18px -6px rgb(96 60 30 / 0.18), 0 2px 4px rgb(96 60 30 / 0.06);
+  --ql-shadow-lg: 0 18px 40px -12px rgb(80 48 20 / 0.28), 0 4px 10px rgb(80 48 20 / 0.08);
+
+  /* Type */
+  --ql-font-body: 'Nunito', ui-rounded, 'Segoe UI', system-ui, sans-serif;
+  --ql-font-display: 'Fraunces', 'Nunito', Georgia, serif;
+  --ql-letter-spacing: 0;
+  --ql-line-height: 1.55;
+
+  /* Motion */
+  --ql-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --ql-duration: 180ms;
+  --ql-duration-slow: 420ms;
+
+  /* Layout */
+  --ql-header-h: 3.75rem;
+  --ql-tabbar-h: 4.25rem;
+  --ql-sidebar-w: 15rem;
+}
+
+/* Night cottage. Applied by data-theme (resolved from "system" in JS). Also works on any
+   element, so a part of the page can preview the other theme (see /dev/ui). */
+:root[data-theme='dark'],
+[data-theme='dark'] {
+  color-scheme: dark;
+  --ql-bg: #1b1725;
+  --ql-bg-glow-1: #3a2a33;
+  --ql-bg-glow-2: #1f2a32;
+  --ql-surface: #252031;
+  --ql-surface-2: #2e283d;
+  --ql-surface-3: #383049;
+  --ql-border: #3f3652;
+  --ql-border-strong: #85789e;
+  --ql-text: #f4eadb;
+  --ql-text-muted: #c4b6a5;
+  --ql-text-faint: #ad9f90;
+  --ql-primary: #f2a46c;
+  --ql-primary-hover: #f7b98a;
+  --ql-primary-soft: #4a3226;
+  --ql-on-primary: #2a170b;
+  --ql-accent: #a3c78f;
+  --ql-accent-soft: #2d3a2a;
+  --ql-on-accent: #16210f;
+  --ql-xp: #c2a6ee;
+  --ql-xp-soft: #3a3052;
+  --ql-gold: #f2c14e;
+  --ql-gold-text: #f5cd6d;
+  --ql-gold-soft: #463a1d;
+  --ql-streak: #f39a5f;
+  --ql-success: #95c785;
+  --ql-success-soft: #27382a;
+  --ql-warning: #f0c060;
+  --ql-warning-soft: #433719;
+  --ql-danger: #f29a88;
+  --ql-danger-soft: #4a2a2a;
+  --ql-info: #8ec5e8;
+  --ql-info-soft: #213847;
+  --ql-focus: #9fd0f0;
+  --ql-scrim: rgb(8 5 14 / 0.62);
+  --ql-cat-sky: #84b6dc;
+  --ql-cat-sage: #9cc48a;
+  --ql-cat-rose: #e597ab;
+  --ql-cat-honey: #e8bd5c;
+  --ql-cat-lavender: #b8a0e6;
+  --ql-cat-clay: #e0956d;
+  --ql-cat-teal: #6fc6c0;
+  --ql-cat-slate: #a7adb8;
+  --ql-shadow-sm: 0 1px 2px rgb(0 0 0 / 0.3);
+  --ql-shadow-md: 0 8px 22px -8px rgb(0 0 0 / 0.55), 0 2px 4px rgb(0 0 0 / 0.25);
+  --ql-shadow-lg: 0 20px 44px -12px rgb(0 0 0 / 0.65), 0 4px 10px rgb(0 0 0 / 0.3);
+}
+
+:root[data-text-size='large'] {
+  font-size: 112.5%;
+}
+:root[data-text-size='larger'] {
+  font-size: 125%;
+}
+
+:root[data-font='dyslexic'] {
+  --ql-font-body: 'OpenDyslexic', 'Nunito', system-ui, sans-serif;
+  --ql-font-display: 'OpenDyslexic', 'Nunito', system-ui, sans-serif;
+  --ql-letter-spacing: 0;
+  --ql-line-height: 1.7;
+}
+
+/* Persian: Vazirmatn everywhere. No letter-spacing (it breaks joined letters). */
+:root[lang='fa'],
+[lang='fa'] {
+  --ql-font-body: 'Vazirmatn', Tahoma, system-ui, sans-serif;
+  --ql-font-display: 'Vazirmatn', Tahoma, system-ui, sans-serif;
+  --ql-letter-spacing: 0;
+}
+[lang='fa'][data-font='dyslexic'],
+[data-font='dyslexic'] [lang='fa'] {
+  --ql-line-height: 1.9;
+}
+
+:root[data-motion='reduce'] {
+  --ql-duration: 0ms;
+  --ql-duration-slow: 0ms;
+}
+:root[data-motion='reduce'] *,
+:root[data-motion='reduce'] *::before,
+:root[data-motion='reduce'] *::after {
+  animation-duration: 0.001ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.001ms !important;
+  scroll-behavior: auto !important;
+}
+
+@theme inline {
+  --color-bg: var(--ql-bg);
+  --color-surface: var(--ql-surface);
+  --color-surface-2: var(--ql-surface-2);
+  --color-surface-3: var(--ql-surface-3);
+  --color-border: var(--ql-border);
+  --color-border-strong: var(--ql-border-strong);
+  --color-text: var(--ql-text);
+  --color-muted: var(--ql-text-muted);
+  --color-faint: var(--ql-text-faint);
+  --color-primary: var(--ql-primary);
+  --color-primary-hover: var(--ql-primary-hover);
+  --color-primary-soft: var(--ql-primary-soft);
+  --color-on-primary: var(--ql-on-primary);
+  --color-accent: var(--ql-accent);
+  --color-accent-soft: var(--ql-accent-soft);
+  --color-on-accent: var(--ql-on-accent);
+  --color-xp: var(--ql-xp);
+  --color-xp-soft: var(--ql-xp-soft);
+  --color-gold: var(--ql-gold);
+  --color-gold-text: var(--ql-gold-text);
+  --color-gold-soft: var(--ql-gold-soft);
+  --color-streak: var(--ql-streak);
+  --color-success: var(--ql-success);
+  --color-success-soft: var(--ql-success-soft);
+  --color-warning: var(--ql-warning);
+  --color-warning-soft: var(--ql-warning-soft);
+  --color-danger: var(--ql-danger);
+  --color-danger-soft: var(--ql-danger-soft);
+  --color-info: var(--ql-info);
+  --color-info-soft: var(--ql-info-soft);
+  --color-focus: var(--ql-focus);
+  --color-scrim: var(--ql-scrim);
+
+  --radius-sm: var(--ql-radius-sm);
+  --radius-md: var(--ql-radius-md);
+  --radius-lg: var(--ql-radius-lg);
+  --radius-xl: var(--ql-radius-xl);
+
+  --shadow-sm: var(--ql-shadow-sm);
+  --shadow-md: var(--ql-shadow-md);
+  --shadow-lg: var(--ql-shadow-lg);
+
+  --font-body: var(--ql-font-body);
+  --font-display: var(--ql-font-display);
+
+  --ease-cozy: var(--ql-ease);
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+    background-color: var(--ql-bg);
+  }
+
+  body {
+    margin: 0;
+    min-height: 100dvh;
+    color: var(--ql-text);
+    background-color: var(--ql-bg);
+    background-image:
+      radial-gradient(60rem 40rem at 110% -10%, var(--ql-bg-glow-1), transparent 60%),
+      radial-gradient(50rem 36rem at -20% 110%, var(--ql-bg-glow-2), transparent 60%);
+    background-attachment: fixed;
+    font-family: var(--ql-font-body);
+    letter-spacing: var(--ql-letter-spacing);
+    line-height: var(--ql-line-height);
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+
+  /* Re-resolve fonts where a subtree sets its own language, font or theme. */
+  [lang],
+  [data-font],
+  [data-theme] {
+    font-family: var(--ql-font-body);
+    letter-spacing: var(--ql-letter-spacing);
+    line-height: var(--ql-line-height);
+  }
+
+  h1,
+  h2,
+  h3 {
+    font-family: var(--ql-font-display);
+    line-height: 1.2;
+    text-wrap: balance;
+  }
+
+  :focus-visible {
+    outline: 3px solid var(--ql-focus);
+    outline-offset: 2px;
+  }
+
+  ::selection {
+    background: var(--ql-primary-soft);
+    color: var(--ql-text);
+  }
+
+  /* Icons that point "forward/back" flip in right-to-left layouts. */
+  [dir='rtl'] .ql-flip-rtl {
+    transform: scaleX(-1);
+  }
+}
+
+@layer components {
+  .ql-visually-hidden {
+    position: absolute;
+    inline-size: 1px;
+    block-size: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+    border: 0;
+  }
+}
+
+@keyframes ql-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes ql-rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes ql-sheet-in {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: none;
+  }
+}
+
+@keyframes ql-shimmer {
+  from {
+    background-position: 0% 50%;
+  }
+  to {
+    background-position: 200% 50%;
+  }
+}
+
+@utility animate-fade-in {
+  animation: ql-fade-in var(--ql-duration) var(--ql-ease) both;
+}
+@utility animate-rise-in {
+  animation: ql-rise-in var(--ql-duration-slow) var(--ql-ease) both;
+}
+@utility animate-sheet-in {
+  animation: ql-sheet-in var(--ql-duration-slow) var(--ql-ease) both;
+}

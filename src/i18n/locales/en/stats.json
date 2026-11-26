@@ -1,0 +1,128 @@
+{
+  "title": "Stats",
+  "subtitle": "Your wins, gently counted.",
+  "loading": "Gathering your stats…",
+  "range": {
+    "label": "Time range",
+    "7d": "7 days",
+    "30d": "30 days",
+    "all": "All time"
+  },
+  "range_phrase": {
+    "7d": "in the last 7 days",
+    "30d": "in the last 30 days",
+    "all": "so far"
+  },
+  "empty": {
+    "title": "Your story starts here",
+    "body": "Finish a step or a focus session and your stats will start to grow here.",
+    "action": "Go to Today"
+  },
+  "tiles": {
+    "label": "Summary",
+    "focus": "Focus time",
+    "steps": "Steps finished",
+    "quests": "Quests finished",
+    "active_days": "Active days",
+    "streak_one": "{{n}} day in your streak",
+    "streak_other": "{{n}} days in your streak"
+  },
+  "table": {
+    "day": "Day",
+    "week": "Week of",
+    "minutes": "Minutes",
+    "steps": "Steps",
+    "quests": "Quests",
+    "xp": "Total XP",
+    "part": "Time of day",
+    "weekday": "Weekday",
+    "count": "Times",
+    "quest": "Quest",
+    "guess": "Guess",
+    "actual": "Real time"
+  },
+  "focus": {
+    "title": "Focus time",
+    "summary": "{{total}} of focus {{range}}.",
+    "best_day": "Your biggest day was {{day}}.",
+    "empty": "Your focus sessions will show up here."
+  },
+  "steps": {
+    "title": "Steps and quests finished",
+    "summary_one": "{{n}} step finished {{range}}",
+    "summary_other": "{{n}} steps finished {{range}}",
+    "quests_one": ", and {{n}} whole quest.",
+    "quests_other": ", and {{n}} whole quests.",
+    "quests_none": ".",
+    "value_one": "{{n}} step",
+    "value_other": "{{n}} steps",
+    "empty": "Each step you finish adds to this chart."
+  },
+  "best_time": {
+    "title": "Best time of day",
+    "summary": "You tend to focus best in the {{part}}.",
+    "empty": "After a few focus sessions, your best time of day shows up here."
+  },
+  "parts": {
+    "early": "Early morning",
+    "morning": "Morning",
+    "midday": "Midday",
+    "afternoon": "Afternoon",
+    "evening": "Evening",
+    "night": "Night"
+  },
+  "parts_phrase": {
+    "early": "early morning",
+    "morning": "morning",
+    "midday": "middle of the day",
+    "afternoon": "afternoon",
+    "evening": "evening",
+    "night": "night"
+  },
+  "distractions": {
+    "title": "When distractions show up",
+    "summary": "They tend to show up in the {{part}}, most often on {{weekday}}. Good to know, nothing to fix.",
+    "summary_count_one": "{{n}} distraction noted {{range}}.",
+    "summary_count_other": "{{n}} distractions noted {{range}}.",
+    "by_part": "By time of day",
+    "by_weekday": "By weekday",
+    "empty": "No distractions noted {{range}}. When you tap \"I got distracted\", you'll see when they tend to happen."
+  },
+  "estimates": {
+    "title": "Guess and real time",
+    "ratio": "Things usually take you about {{ratio}} times your guess.",
+    "ratio_category": "about {{ratio}} times your guess",
+    "ratio_close": "Your guesses are usually close to the real time. Nice.",
+    "ratio_none": "After three quests with a guess and some focus time, you'll see how your guesses compare.",
+    "by_category": "By category",
+    "category_none": "No category",
+    "recent": "Recent quests",
+    "guess": "Guess {{time}}",
+    "actual": "Real {{time}}",
+    "empty": "Finish a quest with a time guess to compare it with the real time."
+  },
+  "xp": {
+    "title": "XP over time",
+    "summary": "{{gained}} XP earned {{range}}, {{total}} XP in all.",
+    "value": "{{n}} XP",
+    "empty": "XP from every step and quest will draw a line here."
+  },
+  "recap": {
+    "title": "Your week in a glance",
+    "range": "{{from}} to {{to}}",
+    "focus": "{{time}} of focus",
+    "steps_one": "{{n}} step finished",
+    "steps_other": "{{n}} steps finished",
+    "quests_one": "{{n}} quest finished",
+    "quests_other": "{{n}} quests finished",
+    "best_day": "{{day}} was your strongest day",
+    "level_one": "You reached level {{level}}",
+    "level_other": "You reached levels {{from}} to {{to}}",
+    "badges_one": "You earned a badge",
+    "badges_other": "You earned {{n}} badges",
+    "estimates": "Your time guesses got closer to the real thing",
+    "cheer": "Every one of these counts. Here's to a gentle new week.",
+    "see_stats": "See your stats",
+    "dismiss": "Dismiss the weekly recap"
+  }
+}

@@ -1,0 +1,47 @@
+{
+  "progress": "Step {{n}} of {{total}}",
+  "progress_label": "Welcome progress",
+  "skip_all": "Skip setup",
+  "skip": "Skip",
+  "back": "Back",
+  "welcome": {
+    "title": "Welcome to Questline",
+    "body": "Real tasks become small quests. Start in two taps, get a reward right away. Days off never count against you.",
+    "point_steps": "Big tasks split into tiny steps",
+    "point_start": "A focus timer that starts in two taps",
+    "point_rewards": "XP, gold and a cozy home that grows with you",
+    "language": "Language",
+    "next": "Let's begin"
+  },
+  "adventurer": {
+    "title": "Create your adventurer",
+    "body": "This is you on the quest. You can change everything later at Home.",
+    "name": "Name (optional)",
+    "name_placeholder": "What should we call you?",
+    "skin": "Skin tone",
+    "hair": "Hair",
+    "hair_color": "Hair color",
+    "preview": "Your adventurer",
+    "next": "Continue"
+  },
+  "quest": {
+    "title": "Add your first quest",
+    "body": "Something small you could start today. Just a title is enough.",
+    "label": "Quest title",
+    "placeholder": "For example: reply to one email",
+    "examples": "Ideas",
+    "example_1": "Reply to one email",
+    "example_2": "Tidy my desk",
+    "example_3": "Read two pages",
+    "next": "Add quest",
+    "saving": "Adding…"
+  },
+  "session": {
+    "title": "Try just 5 minutes",
+    "body": "Starting is the hardest part, so let's make it tiny. A 5-minute focus timer begins on “{{quest}}”. Stopping early is always fine.",
+    "body_none": "Whenever you're ready, add a quest on Today and tap Start. Five minutes is a great first try.",
+    "start": "Start 5 minutes",
+    "later": "Not now",
+    "done": "Go to Today"
+  }
+}

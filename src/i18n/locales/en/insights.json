@@ -1,0 +1,41 @@
+{
+  "energy": {
+    "label": "How's your energy?",
+    "label_set": "Your energy right now",
+    "low": "Low",
+    "medium": "Okay",
+    "high": "High",
+    "hint_low": "Small, gentle steps will come first.",
+    "hint_medium": "A steady mix it is.",
+    "hint_high": "Bigger steps are welcome right now.",
+    "change_hint": "Tap another one any time it changes."
+  },
+  "what_now": {
+    "button": "What should I do now?",
+    "region": "Suggestion",
+    "eyebrow": "Try this one",
+    "next_step": "Next step: {{step}}",
+    "start": "Start",
+    "not_this": "Not this one",
+    "only_one": "This is the only quest on your Active list right now.",
+    "close": "Close the suggestion",
+    "ai_label": "A note from your helper",
+    "empty_title": "Nothing to pick from yet",
+    "empty_backlog": "Your Active list is empty. Choose a quest from your backlog and I'll help from there.",
+    "empty_new": "Add a quest, and I'll help you pick where to begin.",
+    "open_backlog": "Open your quests",
+    "add_quest": "Add a quest",
+    "from_backlog": "From your backlog. Starting it adds it to your Active list."
+  },
+  "reason": {
+    "overdue": "Its date has come, so it's a good one to clear now.",
+    "due_today": "It's due today.",
+    "due_soon": "It's due soon.",
+    "high_priority": "You marked it as important.",
+    "already_active": "It's already on your Active list, one tap from going.",
+    "quick_start": "The next step is quick to start.",
+    "fits_low_energy": "It's gentle enough for low energy.",
+    "fits_high_energy": "It's a good match for your energy right now.",
+    "from_backlog": "It's been waiting in your backlog, ready when you are."
+  }
+}

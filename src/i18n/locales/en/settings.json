@@ -1,0 +1,50 @@
+{
+  "title": "Settings",
+  "subtitle": "Make Questline feel like home.",
+  "language": {
+    "title": "Language",
+    "label": "App language"
+  },
+  "appearance": {
+    "title": "Appearance",
+    "theme": "Theme",
+    "theme_system": "Device",
+    "theme_light": "Light",
+    "theme_dark": "Dark",
+    "text_size": "Text size",
+    "text_normal": "Normal",
+    "text_large": "Large",
+    "text_larger": "Larger",
+    "font": "Font"
+  },
+  "accessibility": {
+    "title": "Accessibility",
+    "dyslexic_font": "Dyslexia-friendly font",
+    "dyslexic_font_hint": "Uses OpenDyslexic with a little more space between lines. Persian keeps Vazirmatn.",
+    "motion": "Motion",
+    "motion_system": "Device",
+    "motion_reduce": "Reduced",
+    "motion_full": "Full",
+    "sound": "Sounds",
+    "sound_hint": "Chimes and reward sounds.",
+    "haptics": "Vibration",
+    "haptics_hint": "A small buzz on rewards, where the device supports it."
+  },
+  "search": {
+    "label": "Search settings",
+    "placeholder": "Theme, timer, reminders…",
+    "none": "Nothing matches “{{query}}”. Try another word."
+  },
+  "sound": {
+    "title": "Sound and vibration",
+    "description": "Reward sounds and celebrations are under Rewards below."
+  },
+  "about": {
+    "title": "About",
+    "version": "Version {{version}}",
+    "body": "Questline turns real tasks into tiny quests. Your data lives on this device and works offline; signing in is optional and only adds sync between your devices.",
+    "replay": "Show the welcome again",
+    "replay_hint": "Walk through the four welcome screens once more. Nothing you have is changed.",
+    "made_with": "Made with care for brains that work differently."
+  }
+}

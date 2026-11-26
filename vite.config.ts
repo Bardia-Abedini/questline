@@ -19,8 +19,10 @@ export default defineConfig({
         short_name: 'Questline',
         description:
           'Turn real tasks into tiny quests. Start in two taps, get rewarded right away.',
-        theme_color: '#f6ead6',
-        background_color: '#fbf5ea',
+        id: '/',
+        theme_color: '#fbf4e8',
+        background_color: '#fbf4e8',
+        categories: ['productivity', 'lifestyle'],
         display: 'standalone',
         orientation: 'any',
         start_url: '/',
@@ -42,12 +44,25 @@ export default defineConfig({
         navigateFallback: '/index.html',
         navigateFallbackDenylist: [/^\/api\//],
         cleanupOutdatedCaches: true,
+        // Cloud: web push and notification clicks (public/push-sw.js).
+        importScripts: ['push-sw.js'],
       },
       devOptions: { enabled: false },
     }),
   ],
   resolve: {
     alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) },
+  },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          react: ['react', 'react-dom', 'react-router'],
+          data: ['dexie', 'dexie-react-hooks'],
+          i18n: ['i18next', 'react-i18next'],
+        },
+      },
+    },
   },
   server: { port: 5173 },
   preview: { port: 4173 },
